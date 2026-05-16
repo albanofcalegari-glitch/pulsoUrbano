@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Syne, DM_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -19,6 +19,12 @@ export const metadata: Metadata = {
   description: "Lo que pasa en tu barrio, visto por vecinos. Avisos urbanos y cosas compartidas en un solo mapa.",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -26,9 +32,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={`dark ${syne.variable} ${dmSans.variable}`}>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-      </head>
       <body className="bg-background text-foreground font-sans">
         {children}
       </body>

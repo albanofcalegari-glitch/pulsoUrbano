@@ -211,7 +211,7 @@ export default function HomePage() {
       {showForm && (
         <ReportForm position={selectedPosition}
           onClose={() => { setShowForm(false); setSelectedPosition(null); }}
-          onSuccess={() => { setShowForm(false); setSelectedPosition(null); fetchReports(); }}
+          onSuccess={() => { window.location.href = window.location.pathname; }}
           onRequestLocation={() => { setShowForm(false); setPickingLocation(true); }}
           onPositionChange={(lat, lng) => setSelectedPosition({ lat, lng })}
         />
