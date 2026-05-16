@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary: #7c5cfc;
+    --primary-light: #c084fc;
+    --background: #f5f5ff;
+    --foreground: #1a1a2e;
+    --card: #ffffff;
+    --card-foreground: #1a1a2e;
+    --secondary: #ede9fe;
+    --muted: #f0eeff;
+    --border: #e0ddf5;
+    --ring: #7c5cfc;
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    --background: #07070f;
+    --foreground: #f0f0f8;
+    --card: #0f0f18;
+    --card-foreground: #f0f0f8;
+    --secondary: #1a1a26;
+    --muted: #1a1a26;
+    --border: rgba(124, 92, 252, 0.18);
+    --ring: #7c5cfc;
+  }
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Fix Leaflet z-index en mobile */
+.leaflet-pane {
+  z-index: 1 !important;
+}
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 2 !important;
+}
+
+/* Leaflet dark mode tweaks */
+.dark .leaflet-control-zoom a {
+  background: var(--card);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+.dark .leaflet-popup-content-wrapper {
+  background: var(--card);
+  color: var(--foreground);
+}
+.dark .leaflet-popup-tip {
+  background: var(--card);
+}

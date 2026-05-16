@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String    @id @default(uuid()) @db.Uuid
+  email                 String    @unique
+  passwordHash          String    @map("password_hash")
+  displayName           String?   @map("display_name")
+  emailVerified         Boolean   @default(false) @map("email_verified")
+  verificationCode      String?   @map("verification_code")
+  verificationExpiresAt DateTime? @map("verification_expires_at") @db.Timestamptz()
+  role                  String    @default("user")
+  trustScore            Int       @default(10) @map("trust_score")
+  trustStars            Int       @default(1) @map("trust_stars")
+  reportsCount          Int       @default(0) @map("reports_count")
+  confirmedReportsCount Int       @default(0) @map("confirmed_reports_count")
+  rejectedReportsCount  Int       @default(0) @map("rejected_reports_count")
+  flagsReceivedCount    Int       @default(0) @map("flags_received_count")
+  isBlocked             Boolean   @default(false) @map("is_blocked")
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt             DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  lastLoginAt           DateTime? @map("last_login_at") @db.Timestamptz()
+
+  reports       Report[]
+  confirmations ReportConfirmation[]
+  removals      ReportRemoval[]
+  flags         ReportFlag[]
+  feedbacks     AppFeedback[]
+
+  @@map("users")
+}
+
+model Report {
+  id                       String    @id @default(uuid()) @db.Uuid
+  userId                   String    @map("user_id") @db.Uuid
+  category                 String    @default("dumpster")
+  latitude                 Float
+  longitude                Float
+  reporterLatitude         Float?    @map("reporter_latitude")
+  reporterLongitude        Float?    @map("reporter_longitude")
+  locationAccuracyMeters   Float?    @map("location_accuracy_meters")
+  distanceFromReportMeters Float?    @map("distance_from_report_meters")
+  locationValidation       String    @default("unknown") @map("location_validation_status")
+  status                   String    @default("seen")
+  comment                  String?
+  photoUrl                 String    @map("photo_url")
+  confidenceScore          Int       @default(0) @map("confidence_score")
+  confirmationCount        Int       @default(0) @map("confirmation_count")
+  removalCount             Int       @default(0) @map("removal_count")
+  flagCount                Int       @default(0) @map("flag_count")
+  moderationStatus         String    @default("pending") @map("moderation_status")
+  reporterIp               String?   @map("reporter_ip")
+  createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt                DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  expiresAt                DateTime  @map("expires_at") @db.Timestamptz()
+  lastConfirmedAt          DateTime? @map("last_confirmed_at") @db.Timestamptz()
+
+  user          User                 @relation(fields: [userId], references: [id])
+  confirmations ReportConfirmation[]
+  removals      ReportRemoval[]
+  flags         ReportFlag[]
+
+  @@index([category])
+  @@index([latitude, longitude])
+  @@index([status])
+  @@index([expiresAt])
+  @@index([userId])
+  @@index([moderationStatus])
+  @@map("reports")
+}
+
+model ReportConfirmation {
+  id        String   @id @default(uuid()) @db.Uuid
+  reportId  String   @map("report_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  ipAddress String?  @map("ip_address")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([reportId, userId])
+  @@index([reportId])
+  @@map("report_confirmations")
+}
+
+model ReportRemoval {
+  id        String   @id @default(uuid()) @db.Uuid
+  reportId  String   @map("report_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  ipAddress String?  @map("ip_address")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([reportId, userId])
+  @@index([reportId])
+  @@map("report_removals")
+}
+
+model ReportFlag {
+  id        String   @id @default(uuid()) @db.Uuid
+  reportId  String   @map("report_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  ipAddress String?  @map("ip_address")
+  reason    String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([reportId, userId])
+  @@index([reportId])
+  @@map("report_flags")
+}
+
+model AppFeedback {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String?   @map("user_id") @db.Uuid
+  email      String?
+  type       String
+  message    String
+  pageUrl    String?   @map("page_url")
+  userAgent  String?   @map("user_agent")
+  ipAddress  String?   @map("ip_address")
+  status     String    @default("new")
+  adminNotes String?   @map("admin_notes")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt  DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  resolvedAt DateTime? @map("resolved_at") @db.Timestamptz()
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+  @@map("app_feedback")
+}
