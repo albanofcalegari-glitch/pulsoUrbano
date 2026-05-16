@@ -20,7 +20,7 @@ export default function HomePage() {
   const [showForm, setShowForm] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [authMessage, setAuthMessage] = useState<string | undefined>();
-  const [authStep, setAuthStep] = useState<"login" | "register" | "verify">("login");
+  const [authStep, setAuthStep] = useState<"login" | "register">("login");
   const [notification, setNotification] = useState<string | null>(null);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [selectedPosition, setSelectedPosition] = useState<{ lat: number; lng: number } | null>(null);
@@ -39,7 +39,7 @@ export default function HomePage() {
 
   useEffect(() => { fetchReports(); }, [fetchReports]);
 
-  function openAuth(message: string, step: "login" | "register" | "verify" = "login") {
+  function openAuth(message: string, step: "login" | "register" = "login") {
     setAuthMessage(message);
     setAuthStep(step);
     setShowAuth(true);
@@ -47,15 +47,11 @@ export default function HomePage() {
 
   function handleReportButton() {
     if (!auth.user) {
-      openAuth("Para cuidar la calidad del mapa, necesitás registrarte y verificar tu email antes de agregar un aviso.");
+      openAuth("Para agregar un aviso, necesitás una cuenta.");
       return;
     }
     if (auth.user.isBlocked) {
       setNotification("Tu cuenta está restringida. No podés agregar ni interactuar con avisos.");
-      return;
-    }
-    if (!auth.user.emailVerified) {
-      openAuth("Verificá tu email para poder agregar avisos al mapa.", "verify");
       return;
     }
     if (geo.lat !== DEFAULT_CENTER.lat || geo.lng !== DEFAULT_CENTER.lng) {
@@ -80,25 +76,18 @@ export default function HomePage() {
       setSelectedReport(null);
       return;
     }
-    if (auth.user && !auth.user.emailVerified) {
-      openAuth("Verificá tu email para poder colaborar con el mapa.", "verify");
-      setSelectedReport(null);
-      return;
-    }
-    openAuth("Para colaborar con el mapa, iniciá sesión y verificá tu email.");
+    openAuth("Para colaborar con el mapa, iniciá sesión.");
     setSelectedReport(null);
   }
 
   function handleAuthSuccess() {
-    setShowAuth(false);
-    setAuthMessage(undefined);
-    auth.refresh();
+    window.location.href = window.location.pathname;
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col overflow-hidden">
+    <div className="flex flex-col overflow-hidden" style={{ height: "100dvh", paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}>
       {/* Header */}
-      <header className="bg-card border-b border-border px-2 py-1.5 sm:px-4 sm:py-2.5 flex items-center justify-between z-[100] shrink-0 gap-2 relative">
+      <header className="shrink-0 bg-card border-b border-border px-2 py-1.5 sm:px-4 sm:py-2.5 flex items-center justify-between gap-1 sm:gap-2">
         <h1 className="font-heading text-sm sm:text-lg font-bold bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent truncate min-w-0">
           {APP_NAME}
         </h1>
@@ -120,31 +109,33 @@ export default function HomePage() {
             </button>
           )}
           <a href="/feedback"
-            className="text-xs text-foreground/40 hover:text-foreground transition-colors hidden sm:inline">
+            className="text-foreground/40 hover:text-foreground transition-colors hidden sm:inline sm:text-xs">
             Ayudanos a mejorar
           </a>
+          <a href="/feedback"
+            className="sm:hidden text-foreground/40 hover:text-foreground transition-colors"
+            aria-label="Feedback"
+            title="Ayudanos a mejorar"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+          </a>
           <button onClick={handleReportButton}
-            className="bg-primary hover:bg-primary/90 text-white text-[11px] sm:text-sm font-medium px-2 py-1 sm:px-4 sm:py-2 rounded-lg transition-all active:translate-y-px whitespace-nowrap">
-            <span className="sm:hidden">+ Agregar</span>
+            className="bg-primary hover:bg-primary/90 text-white text-[11px] sm:text-sm font-medium px-1.5 py-1 sm:px-4 sm:py-2 rounded-lg transition-all active:translate-y-px whitespace-nowrap">
+            <span className="sm:hidden">+</span>
             <span className="hidden sm:inline">+ Agregar al mapa</span>
           </button>
         </div>
       </header>
 
       {/* Filtros */}
-      <div className="bg-card/90 backdrop-blur-sm border-b border-border px-2 py-1.5 sm:px-3 sm:py-2 z-[100] shrink-0 relative">
+      <div className="shrink-0 bg-card border-b border-border px-2 py-1.5 sm:px-3 sm:py-2">
         <StatusFilter selected={categoryGroup} onChange={setCategoryGroup} />
       </div>
 
-      {/* Aviso picking */}
-      {pickingLocation && (
-        <div className="absolute top-28 left-1/2 -translate-x-1/2 z-20 bg-primary text-white text-sm font-medium px-5 py-2.5 rounded-full shadow-lg shadow-primary/25 animate-pulse">
-          Tocá en el mapa para marcar la ubicación
-        </div>
-      )}
-
-      {/* Mapa */}
-      <div className="flex-1 relative z-0 overflow-hidden">
+      {/* Mapa — flex-1 ocupa el resto, min-h-0 evita overflow */}
+      <div className="flex-1 min-h-0 relative overflow-hidden">
         <MapWrapper
           center={center} zoom={DEFAULT_ZOOM} reports={reports}
           onReportClick={setSelectedReport}
@@ -153,6 +144,13 @@ export default function HomePage() {
           userLocation={userLocation}
           flyTrigger={flyTrigger}
         />
+
+        {/* Aviso picking */}
+        {pickingLocation && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-primary text-white text-sm font-medium px-5 py-2.5 rounded-full shadow-lg shadow-primary/25 animate-pulse">
+            Tocá en el mapa para marcar la ubicación
+          </div>
+        )}
 
         {/* Botón Mi ubicación */}
         <button
@@ -201,7 +199,7 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Modales */}
+      {/* Modales — estos sí van fixed, son overlays */}
       {selectedReport && (
         <ReportDetail report={selectedReport}
           isLoggedIn={!!auth.user}

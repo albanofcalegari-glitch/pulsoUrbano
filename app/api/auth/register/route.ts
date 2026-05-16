@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { registerSchema } from "@/lib/validations";
-import { hashPassword, generateVerificationCode } from "@/lib/auth";
-import { sendVerificationEmail } from "@/lib/email";
+import { hashPassword, signToken, setAuthCookie } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   let body: unknown;
@@ -28,23 +27,17 @@ export async function POST(req: NextRequest) {
   }
 
   const passwordHash = await hashPassword(password);
-  const code = generateVerificationCode();
 
-  await prisma.user.create({
+  const user = await prisma.user.create({
     data: {
       email: email.toLowerCase(),
       passwordHash,
       displayName: displayName || null,
-      verificationCode: code,
-      verificationExpiresAt: new Date(Date.now() + 15 * 60 * 1000),
+      emailVerified: true,
     },
   });
 
-  await sendVerificationEmail(email.toLowerCase(), code);
-
-  return NextResponse.json({
-    ok: true,
-    message: "Cuenta creada. Revisá tu email para el código de verificación.",
-    requiresVerification: true,
-  }, { status: 201 });
+  const token = await signToken(user.id);
+  const response = NextResponse.json({ ok: true }, { status: 201 });
+  return setAuthCookie(response, token);
 }

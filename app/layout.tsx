@@ -26,6 +26,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={`dark ${syne.variable} ${dmSans.variable}`}>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+      </head>
       <body className="bg-background text-foreground font-sans">
         {children}
       </body>

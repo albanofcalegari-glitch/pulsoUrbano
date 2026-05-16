@@ -105,9 +105,6 @@ export async function requireAuth(req: NextRequest): Promise<
   if (!user) {
     return { user: null, error: NextResponse.json({ error: "No autenticado" }, { status: 401 }) };
   }
-  if (!user.emailVerified) {
-    return { user: null, error: NextResponse.json({ error: "Email no verificado" }, { status: 403 }) };
-  }
   if (user.isBlocked) {
     return { user: null, error: NextResponse.json({ error: "Tu cuenta está restringida." }, { status: 403 }) };
   }

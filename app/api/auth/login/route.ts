@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { loginSchema } from "@/lib/validations";
-import {
-  verifyPassword,
-  signToken,
-  setAuthCookie,
-  generateVerificationCode,
-} from "@/lib/auth";
-import { sendVerificationEmail } from "@/lib/email";
+import { verifyPassword, signToken, setAuthCookie } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   let body: unknown;
@@ -36,23 +30,6 @@ export async function POST(req: NextRequest) {
 
   if (user.isBlocked) {
     return NextResponse.json({ error: "Tu cuenta está restringida." }, { status: 403 });
-  }
-
-  if (!user.emailVerified) {
-    const code = generateVerificationCode();
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        verificationCode: code,
-        verificationExpiresAt: new Date(Date.now() + 15 * 60 * 1000),
-      },
-    });
-    await sendVerificationEmail(email.toLowerCase(), code);
-    return NextResponse.json({
-      ok: true,
-      requiresVerification: true,
-      message: "Verificá tu email. Te enviamos un nuevo código.",
-    });
   }
 
   await prisma.user.update({

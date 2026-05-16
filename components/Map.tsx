@@ -32,6 +32,11 @@ function FlyToLocation({ lat, lng, trigger }: { lat: number; lng: number; trigge
   useEffect(() => {
     map.flyTo([lat, lng], map.getZoom(), { duration: 1 });
   }, [map, lat, lng, trigger]);
+  useEffect(() => {
+    const handler = () => map.invalidateSize();
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, [map]);
   return null;
 }
 

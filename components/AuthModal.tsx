@@ -6,21 +6,19 @@ interface AuthModalProps {
   onClose: () => void;
   onSuccess: () => void;
   contextMessage?: string;
-  initialStep?: "login" | "register" | "verify";
+  initialStep?: "login" | "register";
   initialEmail?: string;
 }
 
-type Step = "login" | "register" | "verify";
+type Step = "login" | "register";
 
 export default function AuthModal({ onClose, onSuccess, contextMessage, initialStep = "login", initialEmail = "" }: AuthModalProps) {
   const [step, setStep] = useState<Step>(initialStep);
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -35,9 +33,6 @@ export default function AuthModal({ onClose, onSuccess, contextMessage, initialS
       const data = await res.json();
       if (!res.ok) {
         setError(data.error);
-      } else if (data.requiresVerification) {
-        setMessage(data.message);
-        setStep("verify");
       } else {
         onSuccess();
       }
@@ -62,30 +57,6 @@ export default function AuthModal({ onClose, onSuccess, contextMessage, initialS
       if (!res.ok) {
         setError(data.error);
       } else {
-        setMessage(data.message);
-        setStep("verify");
-      }
-    } catch {
-      setError("Error de conexión");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleVerify(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/auth/verify-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error);
-      } else {
         onSuccess();
       }
     } catch {
@@ -102,7 +73,7 @@ export default function AuthModal({ onClose, onSuccess, contextMessage, initialS
         {/* Header */}
         <div className="border-b border-border px-4 py-3 flex items-center justify-between">
           <h2 className="font-heading text-base font-semibold text-card-foreground">
-            {step === "login" ? "Iniciar sesión" : step === "register" ? "Crear cuenta" : "Verificar email"}
+            {step === "login" ? "Iniciar sesión" : "Crear cuenta"}
           </h2>
           <button onClick={onClose} className="h-8 w-8 flex items-center justify-center rounded-lg text-foreground/40 hover:text-foreground hover:bg-muted transition-colors">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -181,23 +152,6 @@ export default function AuthModal({ onClose, onSuccess, contextMessage, initialS
             </form>
           )}
 
-          {/* Verify */}
-          {step === "verify" && (
-            <form onSubmit={handleVerify} className="space-y-3">
-              {message && <p className="text-sm text-foreground/70 bg-muted px-3 py-2 rounded-lg ring-1 ring-foreground/5">{message}</p>}
-              <div>
-                <label className="block text-xs font-medium text-foreground/60 mb-1.5 uppercase tracking-wide">Código de verificación</label>
-                <input type="text" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                  required maxLength={6} placeholder="123456" inputMode="numeric"
-                  className="w-full h-12 px-3 bg-transparent border border-border rounded-lg text-center text-2xl font-bold tracking-[0.5em] text-card-foreground placeholder:text-foreground/20 focus:ring-2 focus:ring-primary/50 focus:border-transparent" />
-              </div>
-              {error && <p className="text-sm text-red-400 bg-red-500/10 px-3 py-2 rounded-lg ring-1 ring-red-500/20">{error}</p>}
-              <button type="submit" disabled={loading || code.length !== 6}
-                className="w-full h-10 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-all active:translate-y-px disabled:opacity-50">
-                {loading ? "Verificando..." : "Verificar"}
-              </button>
-            </form>
-          )}
         </div>
       </div>
     </div>

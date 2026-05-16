@@ -32,6 +32,8 @@
 html, body {
   height: 100%;
   margin: 0;
+  padding: 0;
+  overflow: hidden;
   font-family: var(--font-sans), system-ui, sans-serif;
   background: var(--background);
   color: var(--foreground);
@@ -46,6 +48,10 @@ html, body {
 }
 
 /* Fix Leaflet z-index en mobile */
+.leaflet-container {
+  z-index: 0 !important;
+  isolation: isolate;
+}
 .leaflet-pane {
   z-index: 1 !important;
 }
