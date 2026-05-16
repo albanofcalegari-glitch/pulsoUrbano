@@ -18,21 +18,20 @@ import LocationBadge from "./LocationBadge";
 interface ReportDetailProps {
   report: Report;
   isLoggedIn: boolean;
-  emailVerified: boolean;
   isBlocked: boolean;
   onClose: () => void;
   onAction: () => void;
   onAuthRequired: () => void;
 }
 
-export default function ReportDetail({ report, isLoggedIn, emailVerified, isBlocked, onClose, onAction, onAuthRequired }: ReportDetailProps) {
+export default function ReportDetail({ report, isLoggedIn, isBlocked, onClose, onAction, onAuthRequired }: ReportDetailProps) {
   const [loading, setLoading] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
-  const canInteract = isLoggedIn && emailVerified && !isBlocked;
+  const canInteract = isLoggedIn && !isBlocked;
 
   async function handleAction(action: "confirm" | "remove" | "flag") {
-    if (!isLoggedIn || (isLoggedIn && !emailVerified)) {
+    if (!isLoggedIn) {
       onAuthRequired();
       return;
     }
@@ -162,9 +161,7 @@ export default function ReportDetail({ report, isLoggedIn, emailVerified, isBloc
             <p className="text-xs text-center text-foreground/40">
               {isBlocked
                 ? "Tu cuenta está restringida."
-                : !isLoggedIn
-                ? "Para colaborar con el mapa, iniciá sesión y verificá tu email."
-                : "Verificá tu email para poder colaborar con el mapa."}
+                : "Para colaborar con el mapa, iniciá sesión."}
             </p>
           )}
         </div>

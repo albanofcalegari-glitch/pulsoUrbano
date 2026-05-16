@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { APP_NAME } from "@/lib/constants";
 import { timeAgo } from "@/lib/utils";
 import type { AppFeedback, FeedbackType, FeedbackStatus } from "@/types";
 
@@ -53,7 +51,6 @@ function shortenUA(ua: string | null): string {
 }
 
 export default function AdminFeedbackPage() {
-  const auth = useAuth();
   const [feedbacks, setFeedbacks] = useState<AppFeedback[]>([]);
   const [filter, setFilter] = useState<FilterKey>("new");
   const [loading, setLoading] = useState(true);
@@ -78,18 +75,6 @@ export default function AdminFeedbackPage() {
     fetchFeedbacks();
   }
 
-  if (auth.loading) return <div className="h-screen flex items-center justify-center bg-background text-foreground">Cargando...</div>;
-  if (!auth.user || auth.user.role !== "admin") {
-    return (
-      <div className="h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-2">
-          <h1 className="font-heading text-xl font-bold text-foreground">Acceso denegado</h1>
-          <a href="/" className="inline-block text-primary hover:underline text-sm mt-4">Volver al mapa</a>
-        </div>
-      </div>
-    );
-  }
-
   const FILTERS: { key: FilterKey; label: string }[] = [
     { key: "new", label: "Nuevos" },
     { key: "reviewed", label: "Revisados" },
@@ -100,26 +85,19 @@ export default function AdminFeedbackPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="bg-card border-b border-border px-4 py-3 sm:px-6 sm:py-4 flex items-center justify-between gap-2">
-        <div className="min-w-0">
-          <h1 className="font-heading text-base sm:text-xl font-bold bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent truncate">
-            {APP_NAME} — Feedback
-          </h1>
-          <p className="text-xs text-foreground/40 mt-0.5">{feedbacks.length} comentarios</p>
+    <div>
+      <div className="px-4 sm:px-6 py-4 flex items-center justify-between">
+        <div>
+          <h2 className="font-[family-name:var(--font-heading)] text-2xl font-bold">Feedback</h2>
+          <p className="text-sm text-foreground/50 mt-0.5">{feedbacks.length} comentarios</p>
         </div>
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <a href="/api/admin/feedback/export"
-            className="text-xs text-foreground/50 hover:text-foreground ring-1 ring-foreground/10 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg transition-colors">
-            CSV
-          </a>
-          <a href="/admin" className="text-xs sm:text-sm text-primary hover:underline">Moderación</a>
-          <a href="/" className="text-xs sm:text-sm text-primary hover:underline">Mapa</a>
-        </div>
-      </header>
+        <a href="/api/admin/feedback/export"
+          className="text-xs text-foreground/50 hover:text-foreground ring-1 ring-foreground/10 px-3 py-1.5 rounded-lg transition-colors">
+          Exportar CSV
+        </a>
+      </div>
 
-      {/* Filtros */}
-      <div className="px-4 sm:px-6 py-3 border-b border-border flex gap-2 overflow-x-auto no-scrollbar">
+      <div className="px-4 sm:px-6 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
         {FILTERS.map((f) => (
           <button key={f.key} onClick={() => setFilter(f.key)}
             className={`shrink-0 px-3 py-1.5 rounded-4xl text-xs font-medium transition-all ${
@@ -132,9 +110,14 @@ export default function AdminFeedbackPage() {
         ))}
       </div>
 
-      {/* Lista */}
       <div className="p-4 sm:p-6 space-y-3">
-        {loading && <p className="text-foreground/50 text-sm">Cargando...</p>}
+        {loading && (
+          <div className="flex items-center justify-center h-40">
+            <svg className="w-8 h-8 animate-spin text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" strokeDasharray="60" strokeDashoffset="20" />
+            </svg>
+          </div>
+        )}
         {!loading && feedbacks.length === 0 && (
           <p className="text-foreground/50 text-sm">No hay feedback en esta categoría.</p>
         )}

@@ -203,7 +203,6 @@ export default function HomePage() {
       {selectedReport && (
         <ReportDetail report={selectedReport}
           isLoggedIn={!!auth.user}
-          emailVerified={auth.user?.emailVerified ?? false}
           isBlocked={auth.user?.isBlocked ?? false}
           onClose={() => setSelectedReport(null)}
           onAction={() => { fetchReports(); setSelectedReport(null); }}
