@@ -15,11 +15,18 @@ import {
   getReportType,
 } from "@/lib/constants";
 
+interface NominatimResult {
+  lat: string;
+  lon: string;
+  display_name: string;
+}
+
 interface ReportFormProps {
   position: { lat: number; lng: number } | null;
   onClose: () => void;
   onSuccess: () => void;
   onRequestLocation: () => void;
+  onPositionChange: (lat: number, lng: number) => void;
 }
 
 export default function ReportForm({
@@ -27,6 +34,7 @@ export default function ReportForm({
   onClose,
   onSuccess,
   onRequestLocation,
+  onPositionChange,
 }: ReportFormProps) {
   const [reportType, setReportType] = useState<ReportType>("urban_notice");
   const [category, setCategory] = useState<ReportCategory>("dumpster");
@@ -37,7 +45,42 @@ export default function ReportForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<"uploading" | "creating" | null>(null);
+  const [addressQuery, setAddressQuery] = useState("");
+  const [addressResults, setAddressResults] = useState<NominatimResult[]>([]);
+  const [searchingAddress, setSearchingAddress] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function handleAddressSearch(query: string) {
+    setAddressQuery(query);
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    if (query.length < 3) { setAddressResults([]); return; }
+    searchTimeoutRef.current = setTimeout(async () => {
+      setSearchingAddress(true);
+      try {
+        const params = new URLSearchParams({
+          q: query,
+          format: "json",
+          limit: "5",
+          countrycodes: "ar",
+          addressdetails: "1",
+        });
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
+          headers: { "User-Agent": "PulsoUrbano/1.0" },
+        });
+        if (res.ok) setAddressResults(await res.json());
+      } catch { /* silenciar */ }
+      setSearchingAddress(false);
+    }, 500);
+  }
+
+  function selectAddress(result: NominatimResult) {
+    onPositionChange(parseFloat(result.lat), parseFloat(result.lon));
+    setAddressResults([]);
+    setAddressQuery(result.display_name.split(",").slice(0, 3).join(","));
+    setShowSearch(false);
+  }
 
   const categoriesForType = reportType === "urban_notice"
     ? URBAN_NOTICE_CATEGORIES
@@ -192,16 +235,62 @@ export default function ReportForm({
           {/* Ubicación */}
           <div>
             <label className="block text-xs font-medium text-foreground/60 mb-2 uppercase tracking-wide">Ubicación</label>
-            {position ? (
-              <div className="flex items-center gap-2 text-sm text-foreground/70 bg-muted px-3 py-2.5 rounded-lg ring-1 ring-foreground/5">
-                <span className="text-emerald-400">●</span>
-                <span className="tabular-nums">{position.lat.toFixed(5)}, {position.lng.toFixed(5)}</span>
+            {position && !showSearch ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-foreground/70 bg-muted px-3 py-2.5 rounded-lg ring-1 ring-foreground/5">
+                  <span className="text-emerald-400">●</span>
+                  <span className="tabular-nums flex-1">{position.lat.toFixed(5)}, {position.lng.toFixed(5)}</span>
+                  <button type="button" onClick={() => setShowSearch(true)}
+                    className="text-xs text-primary hover:underline shrink-0">
+                    Cambiar
+                  </button>
+                </div>
               </div>
             ) : (
-              <button type="button" onClick={onRequestLocation}
-                className="w-full py-3 px-4 border-2 border-dashed border-primary/30 rounded-lg text-sm text-primary/70 hover:border-primary hover:text-primary transition-colors">
-                Tocá en el mapa para marcar la ubicación
-              </button>
+              <div className="space-y-2">
+                {/* Buscador de dirección */}
+                <div className="relative">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={addressQuery}
+                      onChange={(e) => handleAddressSearch(e.target.value)}
+                      placeholder="Buscar dirección..."
+                      className="flex-1 h-9 px-3 bg-transparent border border-border rounded-lg text-sm text-card-foreground placeholder:text-foreground/30 focus:ring-2 focus:ring-primary/50 focus:border-transparent"
+                    />
+                    {searchingAddress && (
+                      <div className="h-9 w-9 flex items-center justify-center">
+                        <svg className="w-4 h-4 animate-spin text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10" strokeDasharray="60" strokeDashoffset="20" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  {addressResults.length > 0 && (
+                    <div className="absolute left-0 right-0 top-full mt-1 bg-card rounded-lg ring-1 ring-foreground/10 shadow-xl z-20 max-h-48 overflow-y-auto">
+                      {addressResults.map((result, i) => (
+                        <button key={i} type="button" onClick={() => selectAddress(result)}
+                          className="w-full text-left px-3 py-2.5 text-sm text-foreground/80 hover:bg-muted transition-colors border-b border-border/50 last:border-0">
+                          <span className="line-clamp-2">{result.display_name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  <button type="button" onClick={onRequestLocation}
+                    className="flex-1 py-2 px-3 border border-dashed border-primary/30 rounded-lg text-xs text-primary/70 hover:border-primary hover:text-primary transition-colors">
+                    Marcar en el mapa
+                  </button>
+                  {position && showSearch && (
+                    <button type="button" onClick={() => setShowSearch(false)}
+                      className="py-2 px-3 text-xs text-foreground/50 hover:text-foreground transition-colors">
+                      Cancelar
+                    </button>
+                  )}
+                </div>
+              </div>
             )}
           </div>
 

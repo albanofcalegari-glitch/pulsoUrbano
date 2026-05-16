@@ -56,10 +56,8 @@ export default function HomePage() {
     }
     if (geo.lat !== DEFAULT_CENTER.lat || geo.lng !== DEFAULT_CENTER.lng) {
       setSelectedPosition({ lat: geo.lat, lng: geo.lng });
-      setShowForm(true);
-    } else {
-      setPickingLocation(true);
     }
+    setShowForm(true);
   }
 
   function handleMapClick(lat: number, lng: number) {
@@ -215,6 +213,7 @@ export default function HomePage() {
           onClose={() => { setShowForm(false); setSelectedPosition(null); }}
           onSuccess={() => { setShowForm(false); setSelectedPosition(null); fetchReports(); }}
           onRequestLocation={() => { setShowForm(false); setPickingLocation(true); }}
+          onPositionChange={(lat, lng) => setSelectedPosition({ lat, lng })}
         />
       )}
 
