@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
       locationValidation: locationResult.status,
       status,
       comment: comment || null,
-      photoUrl,
+      photoUrl: photoUrl || null,
       confidenceScore: confidence,
       reporterIp: ip,
       expiresAt: new Date(Date.now() + EXPIRATION_HOURS * 60 * 60 * 1000),

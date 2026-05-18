@@ -49,7 +49,7 @@ model Report {
   locationValidation       String    @default("unknown") @map("location_validation_status")
   status                   String    @default("seen")
   comment                  String?
-  photoUrl                 String    @map("photo_url")
+  photoUrl                 String?   @map("photo_url")
   confidenceScore          Int       @default(0) @map("confidence_score")
   confirmationCount        Int       @default(0) @map("confirmation_count")
   removalCount             Int       @default(0) @map("removal_count")

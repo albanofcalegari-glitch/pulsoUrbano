@@ -126,22 +126,27 @@ export default function ReportForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!position || !photoFile) return;
+    if (!position) return;
 
     setLoading(true);
     setError(null);
 
     try {
-      setStep("uploading");
-      const formData = new FormData();
-      formData.append("file", photoFile);
-      const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
-      if (!uploadRes.ok) {
-        const data = await uploadRes.json();
-        setError(data.error || "Error al subir la foto");
-        return;
+      let photoUrl: string | undefined;
+
+      if (photoFile) {
+        setStep("uploading");
+        const formData = new FormData();
+        formData.append("file", photoFile);
+        const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
+        if (!uploadRes.ok) {
+          const data = await uploadRes.json();
+          setError(data.error || "Error al subir la foto");
+          return;
+        }
+        const uploadData = await uploadRes.json();
+        photoUrl = uploadData.url;
       }
-      const { url: photoUrl } = await uploadRes.json();
 
       let reporterLatitude: number | undefined;
       let reporterLongitude: number | undefined;
@@ -206,10 +211,10 @@ export default function ReportForm({
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          {/* Foto (obligatoria) */}
+          {/* Foto (opcional) */}
           <div>
             <label className="block text-xs font-medium text-foreground/60 mb-2 uppercase tracking-wide">
-              Foto <span className="text-red-400">*</span>
+              Foto <span className="normal-case text-foreground/30 font-normal">(opcional)</span>
             </label>
             {photoPreview ? (
               <div className="relative">
@@ -359,7 +364,7 @@ export default function ReportForm({
           {error && <div className="text-sm text-red-400 bg-red-500/10 px-3 py-2.5 rounded-lg ring-1 ring-red-500/20">{error}</div>}
 
           {/* Submit */}
-          <button type="submit" disabled={!position || !photoFile || loading}
+          <button type="submit" disabled={!position || loading}
             className="w-full py-3 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-all active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-primary/25">
             {loading ? (
               <span className="flex items-center justify-center gap-2">

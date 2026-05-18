@@ -30,7 +30,7 @@ export const createReportSchema = z.object({
     "available", "taken",
   ]),
   comment: z.string().max(500).optional(),
-  photoUrl: z.string().min(1, "La foto es obligatoria"),
+  photoUrl: z.string().optional(),
   reporterLatitude: z.number().min(-90).max(90).optional(),
   reporterLongitude: z.number().min(-180).max(180).optional(),
   locationAccuracyMeters: z.number().min(0).optional(),
