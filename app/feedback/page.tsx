@@ -87,7 +87,7 @@ export default function FeedbackPage() {
 
       <div className="max-w-md mx-auto p-4 sm:p-6">
         <p className="text-sm text-foreground/60 mb-6">
-          Estamos probando la app. Si algo no funcionó, no se entendió o tenés una sugerencia, contanos acá.
+          Estamos construyendo Pulso Urbano con los vecinos. Si algo no funcionó, no se entendió o tenés una sugerencia, contanos acá.
           No hace falta estar logueado.
         </p>
 

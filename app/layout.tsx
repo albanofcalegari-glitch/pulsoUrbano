@@ -16,7 +16,7 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: "Pulso Urbano",
-  description: "Lo que pasa en tu barrio, visto por vecinos. Avisos urbanos y cosas compartidas en un solo mapa.",
+  description: "Mapa comunitario del barrio. Avisos urbanos, objetos compartidos y lo que pasa cerca tuyo, visto por vecinos.",
 };
 
 export const viewport: Viewport = {

@@ -1,112 +1,128 @@
-# Mapa de Volquetes — Especificación MVP
+# Pulso Urbano — Especificacion MVP
 
 ## 1. Problema
 
-En ciudades argentinas, los volquetes (contenedores de obra/residuos) aparecen y desaparecen de la vía pública sin registro centralizado. Los vecinos no saben dónde hay volquetes disponibles, cuáles están llenos, mal ubicados o abandonados. No existe una herramienta comunitaria que permita visualizar esta información en tiempo real.
+En ciudades argentinas, los volquetes, escombros, obras y objetos utiles aparecen y desaparecen de la via publica sin registro comunitario. Los vecinos no saben que esta pasando en su barrio: donde hay un volquete lleno, una vereda bloqueada o un mueble disponible para retirar. No existe una herramienta vecinal que permita visualizar esta informacion de forma inmediata y colaborativa.
+
+Los canales oficiales (miBA, BA 147) estan orientados a tramites, reclamos y expedientes gubernamentales. Pulso Urbano cubre un espacio distinto: la capa cotidiana del barrio, vista por vecinos.
 
 ## 2. Objetivo del MVP
 
-Validar que existe una comunidad dispuesta a reportar y consultar la ubicación de volquetes en un mapa colaborativo. El MVP NO es un marketplace ni un sistema de reservas — es un mapa comunitario donde la información es aportada por los usuarios.
+Validar que existe una comunidad dispuesta a compartir y consultar avisos del barrio en un mapa colaborativo. El MVP NO es un marketplace, una app de denuncias, una app de transito ni un reemplazo de canales oficiales — es un mapa comunitario donde la informacion es aportada por los vecinos.
 
-**Métrica principal de éxito:** ≥100 reportes orgánicos en los primeros 30 días en una ciudad piloto.
+**Foco inicial fuerte: volquetes**, como categoria concreta que ancla el producto. El producto escala a avisos urbanos generales y objetos compartidos por vecinos.
+
+**Metrica principal de exito:** >=100 avisos organicos en los primeros 30 dias en una zona piloto.
 
 ## 3. Usuarios principales
 
-| Usuario | Descripción | Motivación |
+| Usuario | Descripcion | Motivacion |
 |---------|-------------|------------|
-| Vecino reportador | Persona que ve un volquete y lo reporta | Contribuir a la comunidad, quejarse de mal ubicados |
-| Vecino consultante | Persona que busca volquetes cerca | Necesita tirar escombros, verificar estado de su cuadra |
-| Moderador/Admin | Operador del sistema | Mantener calidad de datos, eliminar spam |
+| Vecino que publica | Persona que ve algo en el barrio y lo comparte | Contribuir a la comunidad, informar sobre situaciones visibles |
+| Vecino que consulta | Persona que quiere saber que pasa cerca | Ver el estado de su cuadra, encontrar objetos disponibles |
+| Moderador/Admin | Operador del sistema | Mantener calidad de datos, moderar contenido |
 
 ## 4. Casos de uso
 
-### CU-1: Reportar volquete
-1. El usuario abre la web y ve el mapa centrado en su ubicación
-2. Toca "Reportar volquete"
-3. Selecciona ubicación (GPS o tap en mapa)
-4. Elige estado (Visto, Lleno, Mal ubicado, Abandonado, En uso)
-5. Opcionalmente sube foto y/o comentario
-6. Envía el reporte → aparece un pin nuevo en el mapa
+### CU-1: Agregar aviso al mapa
+1. El usuario abre la web y ve el mapa centrado en su ubicacion
+2. Toca "Agregar al mapa"
+3. Selecciona tipo (aviso urbano o compartido por vecinos)
+4. Elige categoria y estado
+5. Marca ubicacion (GPS, busqueda de direccion o toque en mapa)
+6. Sube foto y opcionalmente agrega comentario
+7. Envia el aviso -> aparece un pin nuevo en el mapa
 
-### CU-2: Confirmar volquete
+### CU-2: Confirmar aviso
 1. El usuario ve un pin, toca y ve la ficha
-2. Toca "Sigue ahí"
-3. Se incrementa el contador y se extiende la expiración 24hs
+2. Toca "Sigue ahi"
+3. Se incrementa el contador y se extiende la expiracion 24hs
 
 ### CU-3: Marcar como removido
-1. El usuario ve un pin de un volquete que ya no está
-2. Toca "Ya no está"
-3. Si se acumulan ≥3 marcas de remoción, el reporte pasa a "removed"
+1. El usuario ve un pin de algo que ya no esta
+2. Toca "Ya no esta"
+3. Si se acumulan >=3 marcas de remocion, el aviso pasa a "removed"
 
-### CU-4: Denunciar reporte
-1. El usuario ve un reporte falso o inapropiado
-2. Toca "Reportar problema"
-3. El reporte pasa a "under_review" si acumula ≥2 denuncias
+### CU-4: Senalar aviso
+1. El usuario ve un aviso falso o inapropiado
+2. Toca "Problema"
+3. El aviso pasa a "under_review" si acumula >=3 senalizaciones
 
-### CU-5: Moderar reportes
+### CU-5: Moderar avisos
 1. El admin entra al panel /admin
-2. Ve listado de reportes (priorizando denunciados)
-3. Puede aprobar, ocultar, marcar spam o eliminar imagen
+2. Ve listado de avisos (priorizando senalados)
+3. Puede aprobar, ocultar, marcar spam o bloquear al vecino
 
 ## 5. Funciones incluidas en el MVP
 
 - Mapa interactivo con OpenStreetMap + Leaflet
-- Geolocalización del navegador (fallback a Buenos Aires)
-- Reportar volquete con ubicación, estado, foto opcional y comentario
-- Pins diferenciados por estado (colores)
-- Filtro por estado
-- Ficha de detalle del reporte
-- Confirmación comunitaria ("Sigue ahí")
-- Remoción comunitaria ("Ya no está")
-- Denuncia de reportes
-- Expiración automática a las 72hs (extensible con confirmaciones)
-- Panel admin mínimo de moderación
-- API propia conectada a PostgreSQL
-- Diseño mobile-first responsive
-- Interfaz en español
+- Geolocalizacion del navegador (fallback a Buenos Aires)
+- 14 categorias de aviso (8 urbanas + 6 compartidas por vecinos)
+- Busqueda de direccion (Nominatim/OSM)
+- Foto con upload a storage
+- Confirmacion comunitaria ("Sigue ahi")
+- Remocion comunitaria ("Ya no esta")
+- Senalamiento para revision
+- Expiracion automatica a las 72hs (extensible con confirmaciones)
+- Sistema de confianza (trust score + estrellas)
+- Sistema de confianza del aviso (confidence score)
+- Validacion de ubicacion (GPS vs punto marcado, 150m)
+- Auth con email verificado (JWT + httpOnly cookies)
+- Panel admin con dashboard, moderacion, usuarios y feedback
+- Rate limiting por nivel de confianza
+- Diseno mobile-first responsive
+- Interfaz en espanol
+- Feedback de beta integrado
 
 ## 6. Funciones excluidas del MVP
 
-- Login obligatorio / registro de usuarios
-- Supabase
-- Google Maps
-- Pagos, marketplace, reservas
-- App nativa móvil
+- Marketplace, ventas, trueques, reservas
+- Pagos o transacciones
 - Chat entre usuarios
+- App nativa movil
 - Tracking en tiempo real
-- Geocoding / búsqueda por dirección
-- Ranking de empresas
+- Push notifications
+- Feed cronologico del barrio
+- Seguir zona
+- Deteccion de duplicados
+- Servicios del barrio (fletes, mudanzas, alquileres)
+- Tramites, reclamos o denuncias formales
+- Transito, accidentes, emergencias, delitos, politica
+- Perfiles de prestador de servicios
 - IA/ML
-- Notificaciones push
 - PWA offline
 
-## 7. Riesgos principales
+## 7. Que NO es Pulso Urbano
 
-| Riesgo | Impacto | Mitigación |
+- No es una app de transito (no es Waze)
+- No es una app de denuncias ni policial
+- No es una app de emergencias (no reemplaza 911)
+- No es un marketplace ni clasificados
+- No es un reemplazo de miBA ni BA Colaborativa
+- No es un canal oficial de reclamos (no reemplaza BA 147)
+- No es una app politica
+
+## 8. Riesgos principales
+
+| Riesgo | Impacto | Mitigacion |
 |--------|---------|------------|
-| Pocos reportes / baja adopción | Alto | Lanzar en barrio específico, seedear datos iniciales |
-| Spam / reportes falsos | Medio | Rate limiting + moderación + denuncias comunitarias |
-| Datos desactualizados | Medio | Expiración automática 72hs + confirmaciones |
-| Abuso de storage (fotos) | Bajo | Límite 5MB, validación de MIME type |
-| Problemas de geolocalización | Bajo | Fallback a selección manual en mapa |
+| Pocos avisos / baja adopcion | Alto | Lanzar en barrio especifico, seedear datos iniciales |
+| Spam / avisos falsos | Medio | Rate limiting + moderacion + senalamiento comunitario + trust score |
+| Datos desactualizados | Medio | Expiracion automatica 72hs + confirmaciones |
+| Abuso de storage (fotos) | Bajo | Limite 5MB, validacion de MIME type |
+| Problemas de geolocalizacion | Bajo | Fallback a seleccion manual en mapa + busqueda de direccion |
+| Confusion con canal oficial | Medio | Disclaimer visible en el mapa |
 
-## 8. Métricas de validación
+## 9. Metricas de validacion
 
-- **Reportes creados** por día/semana
-- **Confirmaciones** por reporte (engagement)
-- **Usuarios únicos** (por fingerprint/cookie)
-- **Tasa de expiración** vs confirmación (calidad de datos)
-- **Reportes denunciados** / spam (salud de la comunidad)
-- **Retención**: usuarios que vuelven en 7 días
+- **Avisos creados** por dia/semana
+- **Confirmaciones** por aviso (engagement)
+- **Usuarios registrados** y verificados
+- **Tasa de expiracion** vs confirmacion (calidad de datos)
+- **Avisos senalados** / spam (salud de la comunidad)
+- **Retencion**: usuarios que vuelven en 7 dias
+- **Feedback de beta**: volumen y tipo
 
-## 9. Supuestos iniciales
+## 10. Alcance primera version
 
-- Los usuarios están dispuestos a reportar sin login
-- La geolocalización del navegador es suficientemente precisa
-- 72 horas es un tiempo razonable de expiración
-- La moderación manual alcanza para la escala MVP
-- Buenos Aires es la ciudad piloto
-
-## 10. Alcance primera versión
-
-Una web responsive que muestra un mapa con pins de volquetes reportados por la comunidad. Cualquier persona puede reportar, confirmar o marcar como removido sin crear cuenta. Los reportes expiran automáticamente. Un admin puede moderar contenido inapropiado. El backend es una API propia en Next.js conectada a PostgreSQL.
+Una web responsive que muestra un mapa comunitario del barrio. Los vecinos registrados agregan avisos con foto y ubicacion. Otros vecinos confirman o marcan como removidos. Los avisos expiran automaticamente. Un admin modera contenido. El foco inicial son volquetes, con soporte completo para avisos urbanos y objetos compartidos por vecinos.

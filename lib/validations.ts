@@ -51,3 +51,44 @@ export const updateFeedbackSchema = z.object({
   status: z.enum(["new", "reviewed", "planned", "resolved", "dismissed"]).optional(),
   adminNotes: z.string().max(2000).optional(),
 });
+
+// ─── Capa 3: Servicios ───
+
+const serviceCategories = [
+  "pintura", "plomeria", "electricidad", "mudanzas", "limpieza",
+  "albanileria", "carpinteria", "jardineria", "cerrajeria", "gasista",
+  "aire_acondicionado", "computacion", "clases_particulares",
+  "cuidado_personas", "mascotas", "fletes", "otro_servicio",
+] as const;
+
+export const createJobRequestSchema = z.object({
+  title: z.string().min(5, "Mínimo 5 caracteres").max(120, "Máximo 120 caracteres"),
+  description: z.string().min(10, "Mínimo 10 caracteres").max(2000, "Máximo 2000 caracteres"),
+  category: z.enum(serviceCategories),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  address: z.string().max(300).optional(),
+  budgetMin: z.number().int().min(0).optional(),
+  budgetMax: z.number().int().min(0).optional(),
+  urgency: z.enum(["low", "normal", "urgent"]).default("normal"),
+});
+
+export const createProviderSchema = z.object({
+  bio: z.string().max(500).optional(),
+  phone: z.string().max(30).optional(),
+  skills: z.array(z.enum(serviceCategories)).min(1, "Elegí al menos un servicio").max(10),
+  photoUrls: z.array(z.string()).max(5).optional(),
+});
+
+export const updateProviderSchema = createProviderSchema.partial();
+
+export const createApplicationSchema = z.object({
+  message: z.string().min(5, "Mínimo 5 caracteres").max(1000, "Máximo 1000 caracteres"),
+  proposedPrice: z.number().int().min(0).optional(),
+  estimatedTime: z.string().max(100).optional(),
+});
+
+export const createReviewSchema = z.object({
+  rating: z.number().int().min(1, "Mínimo 1 estrella").max(5, "Máximo 5 estrellas"),
+  comment: z.string().max(1000).optional(),
+});

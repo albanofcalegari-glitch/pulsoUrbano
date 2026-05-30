@@ -113,12 +113,112 @@ export type CategoryGroup =
   | "construction"
   | "obstructions"
   | "waste"
-  | "neighborhood_share";
+  | "neighborhood_share"
+  | "services_seek"
+  | "services_offer";
 
 // ─── Feedback de beta ───
 
 export type FeedbackType = "bug" | "confusion" | "suggestion" | "performance" | "visual" | "other";
 export type FeedbackStatus = "new" | "reviewed" | "planned" | "resolved" | "dismissed";
+
+// ─── Capa 3: Marketplace de Servicios ───
+
+export type ServiceCategory =
+  | "pintura"
+  | "plomeria"
+  | "electricidad"
+  | "mudanzas"
+  | "limpieza"
+  | "albanileria"
+  | "carpinteria"
+  | "jardineria"
+  | "cerrajeria"
+  | "gasista"
+  | "aire_acondicionado"
+  | "computacion"
+  | "clases_particulares"
+  | "cuidado_personas"
+  | "mascotas"
+  | "fletes"
+  | "otro_servicio";
+
+export type JobUrgency = "low" | "normal" | "urgent";
+export type JobStatus = "open" | "in_progress" | "completed" | "cancelled";
+export type ApplicationStatus = "pending" | "accepted" | "rejected" | "withdrawn";
+
+export interface ServiceProvider {
+  id: string;
+  userId: string;
+  bio: string | null;
+  phone: string | null;
+  skills: ServiceCategory[];
+  photoUrls: string[];
+  averageRating: number;
+  totalJobs: number;
+  totalReviews: number;
+  isVerified: boolean;
+  isActive: boolean;
+  moderationStatus: string;
+  createdAt: string;
+  user: PublicUser;
+}
+
+export interface JobRequest {
+  id: string;
+  userId: string;
+  title: string;
+  description: string;
+  category: ServiceCategory;
+  latitude: number;
+  longitude: number;
+  address: string | null;
+  budgetMin: number | null;
+  budgetMax: number | null;
+  urgency: JobUrgency;
+  status: JobStatus;
+  applicationsCount: number;
+  selectedProviderId: string | null;
+  createdAt: string;
+  expiresAt: string;
+  user: PublicUser;
+}
+
+export interface JobApplication {
+  id: string;
+  jobRequestId: string;
+  providerId: string;
+  userId: string;
+  message: string;
+  proposedPrice: number | null;
+  estimatedTime: string | null;
+  status: ApplicationStatus;
+  createdAt: string;
+  provider: ServiceProvider;
+}
+
+export interface JobReview {
+  id: string;
+  jobRequestId: string;
+  authorId: string;
+  targetId: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  author: PublicUser;
+}
+
+export interface CreateJobPayload {
+  title: string;
+  description: string;
+  category: ServiceCategory;
+  latitude: number;
+  longitude: number;
+  address?: string;
+  budgetMin?: number;
+  budgetMax?: number;
+  urgency?: JobUrgency;
+}
 
 export interface AppFeedback {
   id: string;

@@ -33,6 +33,12 @@ model User {
   flags         ReportFlag[]
   feedbacks     AppFeedback[]
 
+  serviceProvider  ServiceProvider?
+  jobRequests      JobRequest[]
+  jobApplications  JobApplication[]
+  reviewsGiven     JobReview[]        @relation("ReviewAuthor")
+  reviewsReceived  JobReview[]        @relation("ReviewTarget")
+
   @@map("users")
 }
 
@@ -142,4 +148,102 @@ model AppFeedback {
   @@index([type])
   @@index([createdAt])
   @@map("app_feedback")
+}
+
+// --- Capa 3: Marketplace de Servicios ---
+
+model ServiceProvider {
+  id               String   @id @default(uuid()) @db.Uuid
+  userId           String   @unique @map("user_id") @db.Uuid
+  bio              String?  @db.Text
+  phone            String?
+  skills           String[]
+  photoUrls        String[] @map("photo_urls")
+  averageRating    Float    @default(0) @map("average_rating")
+  totalJobs        Int      @default(0) @map("total_jobs")
+  totalReviews     Int      @default(0) @map("total_reviews")
+  isVerified       Boolean  @default(false) @map("is_verified")
+  isActive         Boolean  @default(true) @map("is_active")
+  moderationStatus String   @default("pending") @map("moderation_status")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  user         User             @relation(fields: [userId], references: [id])
+  applications JobApplication[]
+
+  @@index([isActive])
+  @@index([moderationStatus])
+  @@map("service_providers")
+}
+
+model JobRequest {
+  id                 String    @id @default(uuid()) @db.Uuid
+  userId             String    @map("user_id") @db.Uuid
+  title              String    @db.VarChar(120)
+  description        String    @db.Text
+  category           String
+  latitude           Float
+  longitude          Float
+  address            String?   @db.VarChar(300)
+  budgetMin          Int?      @map("budget_min")
+  budgetMax          Int?      @map("budget_max")
+  urgency            String    @default("normal")
+  status             String    @default("open")
+  moderationStatus   String    @default("pending") @map("moderation_status")
+  applicationsCount  Int       @default(0) @map("applications_count")
+  selectedProviderId String?   @map("selected_provider_id") @db.Uuid
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt          DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  expiresAt          DateTime  @map("expires_at") @db.Timestamptz()
+
+  user         User             @relation(fields: [userId], references: [id])
+  applications JobApplication[]
+  reviews      JobReview[]
+
+  @@index([category])
+  @@index([status])
+  @@index([latitude, longitude])
+  @@index([userId])
+  @@index([moderationStatus])
+  @@index([expiresAt])
+  @@map("job_requests")
+}
+
+model JobApplication {
+  id            String   @id @default(uuid()) @db.Uuid
+  jobRequestId  String   @map("job_request_id") @db.Uuid
+  providerId    String   @map("provider_id") @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  message       String   @db.Text
+  proposedPrice Int?     @map("proposed_price")
+  estimatedTime String?  @map("estimated_time") @db.VarChar(100)
+  status        String   @default("pending")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  jobRequest JobRequest      @relation(fields: [jobRequestId], references: [id], onDelete: Cascade)
+  provider   ServiceProvider @relation(fields: [providerId], references: [id])
+  user       User            @relation(fields: [userId], references: [id])
+
+  @@unique([jobRequestId, providerId])
+  @@index([jobRequestId])
+  @@index([providerId])
+  @@map("job_applications")
+}
+
+model JobReview {
+  id           String   @id @default(uuid()) @db.Uuid
+  jobRequestId String   @map("job_request_id") @db.Uuid
+  authorId     String   @map("author_id") @db.Uuid
+  targetId     String   @map("target_id") @db.Uuid
+  rating       Int
+  comment      String?  @db.Text
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  jobRequest JobRequest @relation(fields: [jobRequestId], references: [id], onDelete: Cascade)
+  author     User       @relation("ReviewAuthor", fields: [authorId], references: [id])
+  target     User       @relation("ReviewTarget", fields: [targetId], references: [id])
+
+  @@unique([jobRequestId, authorId])
+  @@index([targetId])
+  @@map("job_reviews")
 }

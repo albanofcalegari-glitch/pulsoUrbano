@@ -3,12 +3,15 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import { useEffect } from "react";
-import type { Report, ReportCategory, ReportStatus } from "@/types";
+import type { Report, ReportCategory, ReportStatus, JobRequest, ServiceCategory } from "@/types";
 import {
   REPORT_CATEGORY_COLORS,
   REPORT_CATEGORY_LABELS,
   REPORT_STATUS_LABELS,
   REPORT_STATUS_COLORS,
+  SERVICE_CATEGORY_COLORS,
+  SERVICE_CATEGORY_LABELS,
+  JOB_URGENCY_LABELS,
 } from "@/lib/constants";
 import { timeAgo } from "@/lib/utils";
 import "leaflet/dist/leaflet.css";
@@ -23,6 +26,21 @@ function createIcon(category: ReportCategory): L.DivIcon {
     html: `<svg viewBox="0 0 24 36" width="28" height="36" xmlns="http://www.w3.org/2000/svg">
       <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="${color}"/>
       <circle cx="12" cy="12" r="6" fill="white"/>
+    </svg>`,
+  });
+}
+
+function createJobIcon(category: ServiceCategory): L.DivIcon {
+  const color = SERVICE_CATEGORY_COLORS[category] || "#7c5cfc";
+  return L.divIcon({
+    className: "",
+    iconSize: [28, 36],
+    iconAnchor: [14, 36],
+    popupAnchor: [0, -36],
+    html: `<svg viewBox="0 0 24 36" width="28" height="36" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="2" width="20" height="20" rx="5" fill="${color}" stroke="white" stroke-width="2"/>
+      <polygon points="12,36 8,22 16,22" fill="${color}"/>
+      <circle cx="12" cy="12" r="4" fill="white"/>
     </svg>`,
   });
 }
@@ -53,7 +71,9 @@ interface MapProps {
   center: { lat: number; lng: number };
   zoom: number;
   reports: Report[];
+  jobs?: JobRequest[];
   onReportClick?: (report: Report) => void;
+  onJobClick?: (job: JobRequest) => void;
   onMapClick?: (lat: number, lng: number) => void;
   selectedPosition?: { lat: number; lng: number } | null;
   userLocation?: { lat: number; lng: number } | null;
@@ -71,7 +91,9 @@ export default function Map({
   center,
   zoom,
   reports,
+  jobs = [],
   onReportClick,
+  onJobClick,
   onMapClick,
   selectedPosition,
   userLocation,
@@ -113,6 +135,30 @@ export default function Map({
                   {report.confirmationCount} confirmación{report.confirmationCount !== 1 ? "es" : ""}
                 </p>
               )}
+            </div>
+          </Popup>
+        </Marker>
+      ))}
+
+      {jobs.map((job) => (
+        <Marker
+          key={`job-${job.id}`}
+          position={[job.latitude, job.longitude]}
+          icon={createJobIcon(job.category as ServiceCategory)}
+          eventHandlers={{ click: () => onJobClick?.(job) }}
+        >
+          <Popup>
+            <div className="text-sm min-w-[160px]">
+              <p className="text-xs font-medium text-purple-600">
+                🔧 {SERVICE_CATEGORY_LABELS[job.category as ServiceCategory]}
+              </p>
+              <p className="font-semibold text-gray-800">{job.title}</p>
+              {job.urgency === "urgent" && (
+                <p className="text-xs text-red-500 mt-0.5">🔥 {JOB_URGENCY_LABELS[job.urgency]}</p>
+              )}
+              <p className="text-gray-400 text-xs mt-1">
+                {timeAgo(job.createdAt)} · {job.applicationsCount} postulación{job.applicationsCount !== 1 ? "es" : ""}
+              </p>
             </div>
           </Popup>
         </Marker>

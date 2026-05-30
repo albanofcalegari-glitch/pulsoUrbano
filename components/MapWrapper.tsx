@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { Report } from "@/types";
+import type { Report, JobRequest } from "@/types";
 
 const Map = dynamic(() => import("./Map"), {
   ssr: false,
@@ -16,7 +16,9 @@ interface MapWrapperProps {
   center: { lat: number; lng: number };
   zoom: number;
   reports: Report[];
+  jobs?: JobRequest[];
   onReportClick?: (report: Report) => void;
+  onJobClick?: (job: JobRequest) => void;
   onMapClick?: (lat: number, lng: number) => void;
   selectedPosition?: { lat: number; lng: number } | null;
   userLocation?: { lat: number; lng: number } | null;

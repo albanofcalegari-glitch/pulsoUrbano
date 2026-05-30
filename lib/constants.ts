@@ -1,4 +1,8 @@
-import type { ReportStatus, ReportCategory, ReportType, LocationValidation, ConfidenceLevel, CategoryGroup } from "@/types";
+import type { ReportStatus, ReportCategory, ReportType, LocationValidation, ConfidenceLevel, CategoryGroup, ServiceCategory, JobUrgency, JobStatus } from "@/types";
+
+export function isServicesMode(group: CategoryGroup): boolean {
+  return group === "services_seek" || group === "services_offer";
+}
 
 // ─── Categorías ───
 
@@ -85,6 +89,8 @@ export const CATEGORY_GROUP_LABELS: Record<CategoryGroup, string> = {
   obstructions: "Obstáculos",
   waste: "Residuos",
   neighborhood_share: "Compartido",
+  services_seek: "Busco servicio",
+  services_offer: "Ofrezco servicio",
 };
 
 export const CATEGORY_GROUP_DESCRIPTIONS: Record<CategoryGroup, string> = {
@@ -94,6 +100,8 @@ export const CATEGORY_GROUP_DESCRIPTIONS: Record<CategoryGroup, string> = {
   obstructions: "Veredas bloqueadas y obstáculos en la calle.",
   waste: "Residuos voluminosos dejados en la vía pública.",
   neighborhood_share: "Cosas útiles dejadas por vecinos: libros, muebles, plantas, objetos gratuitos.",
+  services_seek: "Vecinos que buscan un profesional para un trabajo.",
+  services_offer: "Profesionales que ofrecen sus servicios en la zona.",
 };
 
 export const CATEGORY_GROUP_MEMBERS: Record<CategoryGroup, ReportCategory[] | null> = {
@@ -103,6 +111,8 @@ export const CATEGORY_GROUP_MEMBERS: Record<CategoryGroup, ReportCategory[] | nu
   obstructions: ["sidewalk_blocked", "street_obstruction"],
   waste: ["large_waste"],
   neighborhood_share: ["books", "furniture", "reusable_materials", "plants", "free_object", "other_share"],
+  services_seek: null,
+  services_offer: null,
 };
 
 // ─── Estados ───
@@ -220,6 +230,74 @@ export const MAX_ACTIONS_PER_DAY_NEW_USER = 10;
 export const MAX_ACTIONS_PER_DAY_TRUSTED = 50;
 export const NEW_USER_TRUST_THRESHOLD = 2;
 export const AUTO_BLOCK_FLAGS_THRESHOLD = 10;
+
+// ─── Capa 3: Servicios ───
+
+export const SERVICE_CATEGORIES: ServiceCategory[] = [
+  "pintura", "plomeria", "electricidad", "mudanzas", "limpieza",
+  "albanileria", "carpinteria", "jardineria", "cerrajeria", "gasista",
+  "aire_acondicionado", "computacion", "clases_particulares",
+  "cuidado_personas", "mascotas", "fletes", "otro_servicio",
+];
+
+export const SERVICE_CATEGORY_LABELS: Record<ServiceCategory, string> = {
+  pintura: "Pintura",
+  plomeria: "Plomería",
+  electricidad: "Electricidad",
+  mudanzas: "Mudanzas",
+  limpieza: "Limpieza",
+  albanileria: "Albañilería",
+  carpinteria: "Carpintería",
+  jardineria: "Jardinería",
+  cerrajeria: "Cerrajería",
+  gasista: "Gasista",
+  aire_acondicionado: "Aire acondicionado",
+  computacion: "Computación / IT",
+  clases_particulares: "Clases particulares",
+  cuidado_personas: "Cuidado de personas",
+  mascotas: "Mascotas",
+  fletes: "Fletes",
+  otro_servicio: "Otro servicio",
+};
+
+export const SERVICE_CATEGORY_COLORS: Record<ServiceCategory, string> = {
+  pintura: "#F59E0B",
+  plomeria: "#3B82F6",
+  electricidad: "#EAB308",
+  mudanzas: "#8B5CF6",
+  limpieza: "#06B6D4",
+  albanileria: "#D97706",
+  carpinteria: "#92400E",
+  jardineria: "#22C55E",
+  cerrajeria: "#6B7280",
+  gasista: "#EF4444",
+  aire_acondicionado: "#0EA5E9",
+  computacion: "#7C3AED",
+  clases_particulares: "#EC4899",
+  cuidado_personas: "#F472B6",
+  mascotas: "#A3E635",
+  fletes: "#64748B",
+  otro_servicio: "#9CA3AF",
+};
+
+export const JOB_URGENCY_LABELS: Record<JobUrgency, string> = {
+  low: "Sin apuro",
+  normal: "Normal",
+  urgent: "Urgente",
+};
+
+export const JOB_STATUS_LABELS: Record<JobStatus, string> = {
+  open: "Abierto",
+  in_progress: "En curso",
+  completed: "Completado",
+  cancelled: "Cancelado",
+};
+
+export const JOB_EXPIRATION_DAYS = 30;
+export const MAX_APPLICATIONS_PER_JOB = 20;
+export const MAX_JOBS_PER_DAY_NEW = 2;
+export const MAX_JOBS_PER_DAY_TRUSTED = 5;
+export const MAX_PORTFOLIO_PHOTOS = 5;
 
 // ─── Identidad ───
 

@@ -5,39 +5,79 @@ import MapWrapper from "@/components/MapWrapper";
 import StatusFilter from "@/components/StatusFilter";
 import ReportForm from "@/components/ReportForm";
 import ReportDetail from "@/components/ReportDetail";
+import JobRequestForm from "@/components/JobRequestForm";
+import JobDetail from "@/components/JobDetail";
+import ProviderProfileForm from "@/components/ProviderProfileForm";
+import ProviderCard from "@/components/ProviderCard";
 import AuthModal from "@/components/AuthModal";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useAuth } from "@/hooks/useAuth";
-import { DEFAULT_CENTER, DEFAULT_ZOOM, APP_NAME, APP_TAGLINE } from "@/lib/constants";
+import { DEFAULT_CENTER, DEFAULT_ZOOM, APP_NAME, isServicesMode } from "@/lib/constants";
 import { starsDisplay } from "@/lib/utils";
-import type { Report, CategoryGroup } from "@/types";
+import type { Report, JobRequest, ServiceProvider, CategoryGroup } from "@/types";
 
 export default function HomePage() {
   const geo = useGeolocation();
   const auth = useAuth();
   const [reports, setReports] = useState<Report[]>([]);
+  const [jobs, setJobs] = useState<JobRequest[]>([]);
+  const [providers, setProviders] = useState<ServiceProvider[]>([]);
   const [categoryGroup, setCategoryGroup] = useState<CategoryGroup>("all");
   const [showForm, setShowForm] = useState(false);
+  const [showJobForm, setShowJobForm] = useState(false);
+  const [showProviderForm, setShowProviderForm] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [authMessage, setAuthMessage] = useState<string | undefined>();
   const [authStep, setAuthStep] = useState<"login" | "register">("login");
   const [notification, setNotification] = useState<string | null>(null);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [selectedJob, setSelectedJob] = useState<JobRequest | null>(null);
   const [selectedPosition, setSelectedPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [pickingLocation, setPickingLocation] = useState(false);
+  const [hasProviderProfile, setHasProviderProfile] = useState(false);
 
   const [flyTrigger, setFlyTrigger] = useState(0);
   const center = geo.located ? { lat: geo.lat, lng: geo.lng } : DEFAULT_CENTER;
   const userLocation = geo.located ? { lat: geo.lat, lng: geo.lng } : null;
 
+  const inServices = isServicesMode(categoryGroup);
+  const isSeekMode = categoryGroup === "services_seek";
+  const isOfferMode = categoryGroup === "services_offer";
+
   const fetchReports = useCallback(async () => {
+    if (inServices) { setReports([]); return; }
     const params = new URLSearchParams();
     if (categoryGroup !== "all") params.set("categoryGroup", categoryGroup);
     const res = await fetch(`/api/reports?${params}`);
     if (res.ok) setReports(await res.json());
-  }, [categoryGroup]);
+  }, [categoryGroup, inServices]);
+
+  const fetchJobs = useCallback(async () => {
+    if (!isSeekMode) { setJobs([]); return; }
+    const res = await fetch("/api/jobs");
+    if (res.ok) setJobs(await res.json());
+  }, [isSeekMode]);
+
+  const fetchProviders = useCallback(async () => {
+    if (!isOfferMode) { setProviders([]); return; }
+    const res = await fetch("/api/providers");
+    if (res.ok) setProviders(await res.json());
+  }, [isOfferMode]);
+
+  const checkProviderProfile = useCallback(async () => {
+    if (!auth.user) { setHasProviderProfile(false); return; }
+    try {
+      const res = await fetch("/api/providers/me");
+      setHasProviderProfile(res.ok);
+    } catch {
+      setHasProviderProfile(false);
+    }
+  }, [auth.user]);
 
   useEffect(() => { fetchReports(); }, [fetchReports]);
+  useEffect(() => { fetchJobs(); }, [fetchJobs]);
+  useEffect(() => { fetchProviders(); }, [fetchProviders]);
+  useEffect(() => { checkProviderProfile(); }, [checkProviderProfile]);
 
   function openAuth(message: string, step: "login" | "register" = "login") {
     setAuthMessage(message);
@@ -47,7 +87,10 @@ export default function HomePage() {
 
   function handleReportButton() {
     if (!auth.user) {
-      openAuth("Para agregar un aviso, necesitás una cuenta.");
+      const msg = isSeekMode ? "Para pedir un servicio, necesitás una cuenta."
+        : isOfferMode ? "Para ofrecer tus servicios, necesitás una cuenta."
+        : "Para agregar un aviso, necesitás una cuenta.";
+      openAuth(msg);
       return;
     }
     if (auth.user.isBlocked) {
@@ -57,7 +100,13 @@ export default function HomePage() {
     if (geo.lat !== DEFAULT_CENTER.lat || geo.lng !== DEFAULT_CENTER.lng) {
       setSelectedPosition({ lat: geo.lat, lng: geo.lng });
     }
-    setShowForm(true);
+    if (isSeekMode) {
+      setShowJobForm(true);
+    } else if (isOfferMode) {
+      setShowProviderForm(true);
+    } else {
+      setShowForm(true);
+    }
   }
 
   function handleMapClick(lat: number, lng: number) {
@@ -122,7 +171,9 @@ export default function HomePage() {
           <button onClick={handleReportButton}
             className="bg-primary hover:bg-primary/90 text-white text-[11px] sm:text-sm font-medium px-1.5 py-1 sm:px-4 sm:py-2 rounded-lg transition-all active:translate-y-px whitespace-nowrap">
             <span className="sm:hidden">+</span>
-            <span className="hidden sm:inline">+ Agregar al mapa</span>
+            <span className="hidden sm:inline">
+              {isSeekMode ? "🔍 Pedir servicio" : isOfferMode ? "🛠️ Ofrecer servicio" : "+ Agregar al mapa"}
+            </span>
           </button>
         </div>
       </header>
@@ -132,11 +183,46 @@ export default function HomePage() {
         <StatusFilter selected={categoryGroup} onChange={setCategoryGroup} />
       </div>
 
-      {/* Mapa — flex-1 ocupa el resto, min-h-0 evita overflow */}
-      <div className="flex-1 min-h-0 relative overflow-hidden">
+      {/* Disclaimer */}
+      <div className="shrink-0 bg-card/80 border-b border-border px-2 py-1 sm:px-4">
+        <p className="text-[10px] sm:text-xs text-foreground/40 text-center leading-relaxed">
+          Pulso Urbano no es un canal oficial. Los avisos son colaborativos y pueden no estar verificados.
+          {" "}Reclamos formales:{" "}
+          <a href="https://www.buenosaires.gob.ar/147" target="_blank" rel="noopener noreferrer"
+            className="underline hover:text-foreground/60 transition-colors">BA 147</a>.
+          {" "}Emergencias: 911.
+        </p>
+      </div>
+
+      {/* Mapa + panel lateral — flex-1 ocupa el resto, min-h-0 evita overflow */}
+      <div className="flex-1 min-h-0 relative overflow-hidden flex">
+        {/* Panel de proveedores (modo Ofrezco) */}
+        {isOfferMode && (
+          <div className="w-80 shrink-0 bg-card border-r border-border overflow-y-auto p-3 space-y-3 hidden sm:block">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold">🛠️ Proveedores</h2>
+              <span className="text-xs text-foreground/40">{providers.length}</span>
+            </div>
+            {providers.length === 0 ? (
+              <div className="text-center py-8 space-y-2">
+                <p className="text-2xl">🔧</p>
+                <p className="text-sm text-foreground/50">Todavía no hay proveedores.</p>
+                <p className="text-xs text-foreground/40">¡Sé el primero en ofrecer tus servicios!</p>
+              </div>
+            ) : (
+              providers.map((p) => (
+                <ProviderCard key={p.id} provider={p} />
+              ))
+            )}
+          </div>
+        )}
+
+        <div className="flex-1 min-w-0 relative">
         <MapWrapper
           center={center} zoom={DEFAULT_ZOOM} reports={reports}
+          jobs={jobs}
           onReportClick={setSelectedReport}
+          onJobClick={setSelectedJob}
           onMapClick={pickingLocation ? handleMapClick : undefined}
           selectedPosition={selectedPosition}
           userLocation={userLocation}
@@ -195,6 +281,7 @@ export default function HomePage() {
             )}
           </div>
         )}
+        </div>
       </div>
 
       {/* Modales — estos sí van fixed, son overlays */}
@@ -208,12 +295,40 @@ export default function HomePage() {
         />
       )}
 
+      {selectedJob && (
+        <JobDetail
+          job={selectedJob}
+          currentUserId={auth.user?.id ?? null}
+          hasProviderProfile={hasProviderProfile}
+          onClose={() => setSelectedJob(null)}
+          onAuthRequired={() => { openAuth("Para postularte, necesitás una cuenta."); setSelectedJob(null); }}
+          onNeedProvider={() => { setSelectedJob(null); setShowProviderForm(true); }}
+          onJobUpdated={() => { fetchJobs(); }}
+        />
+      )}
+
       {showForm && (
         <ReportForm position={selectedPosition}
           onClose={() => { setShowForm(false); setSelectedPosition(null); }}
           onSuccess={() => { window.location.href = window.location.pathname; }}
           onRequestLocation={() => { setShowForm(false); setPickingLocation(true); }}
           onPositionChange={(lat, lng) => setSelectedPosition({ lat, lng })}
+        />
+      )}
+
+      {showJobForm && (
+        <JobRequestForm position={selectedPosition}
+          onClose={() => { setShowJobForm(false); setSelectedPosition(null); }}
+          onSuccess={() => { setShowJobForm(false); setSelectedPosition(null); fetchJobs(); }}
+          onRequestLocation={() => { setShowJobForm(false); setPickingLocation(true); }}
+          onPositionChange={(lat, lng) => setSelectedPosition({ lat, lng })}
+        />
+      )}
+
+      {showProviderForm && (
+        <ProviderProfileForm
+          onClose={() => setShowProviderForm(false)}
+          onSuccess={() => { setShowProviderForm(false); fetchProviders(); }}
         />
       )}
 
