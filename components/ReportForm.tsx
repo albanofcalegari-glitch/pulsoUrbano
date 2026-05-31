@@ -11,8 +11,10 @@ import {
   REPORT_TYPE_LABELS,
   URBAN_NOTICE_CATEGORIES,
   NEIGHBORHOOD_SHARE_CATEGORIES,
+  VEHICLE_ALERT_CATEGORIES,
   MAX_PHOTO_SIZE_BYTES,
   getReportType,
+  isVehicleAlert,
 } from "@/lib/constants";
 
 interface NominatimResult {
@@ -49,8 +51,13 @@ export default function ReportForm({
   const [addressResults, setAddressResults] = useState<NominatimResult[]>([]);
   const [searchingAddress, setSearchingAddress] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [vehiclePlate, setVehiclePlate] = useState("");
+  const [vehicleBrand, setVehicleBrand] = useState("");
+  const [vehicleColor, setVehicleColor] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const isVehicle = isVehicleAlert(category);
 
   function handleAddressSearch(query: string) {
     setAddressQuery(query);
@@ -83,7 +90,7 @@ export default function ReportForm({
   }
 
   const categoriesForType = reportType === "urban_notice"
-    ? URBAN_NOTICE_CATEGORIES
+    ? URBAN_NOTICE_CATEGORIES.filter(c => !VEHICLE_ALERT_CATEGORIES.includes(c))
     : NEIGHBORHOOD_SHARE_CATEGORIES;
 
   const availableStatuses = CATEGORY_STATUSES[category];
@@ -167,6 +174,19 @@ export default function ReportForm({
       }
 
       setStep("creating");
+
+      let finalComment = comment.trim();
+      if (isVehicle) {
+        const parts: string[] = [];
+        if (vehicleBrand.trim()) parts.push(vehicleBrand.trim());
+        if (vehicleColor.trim()) parts.push(vehicleColor.trim());
+        if (vehiclePlate.trim()) parts.push(`termina en ${vehiclePlate.trim().toUpperCase()}`);
+        if (parts.length > 0) {
+          const vehicleInfo = parts.join(", ");
+          finalComment = finalComment ? `${vehicleInfo} — ${finalComment}` : vehicleInfo;
+        }
+      }
+
       const res = await fetch("/api/reports", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -175,7 +195,7 @@ export default function ReportForm({
           latitude: position.lat,
           longitude: position.lng,
           status,
-          comment: comment.trim() || undefined,
+          comment: finalComment || undefined,
           photoUrl,
           reporterLatitude,
           reporterLongitude,
@@ -322,7 +342,7 @@ export default function ReportForm({
             <div className="flex flex-wrap gap-2">
               {categoriesForType.map((cat) => (
                 <button key={cat} type="button" onClick={() => handleCategoryChange(cat)}
-                  className={`px-3 py-1.5 rounded-4xl text-xs font-medium transition-all active:translate-y-px ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all active:translate-y-px ${
                     category === cat ? "text-white shadow-sm" : "bg-secondary text-foreground/60 ring-1 ring-foreground/10 hover:bg-muted"
                   }`}
                   style={category === cat ? { backgroundColor: REPORT_CATEGORY_COLORS[cat], boxShadow: `0 2px 8px ${REPORT_CATEGORY_COLORS[cat]}40` } : undefined}>
@@ -332,13 +352,73 @@ export default function ReportForm({
             </div>
           </div>
 
+          {/* Alerta vehicular */}
+          {reportType === "urban_notice" && (
+            <div>
+              <label className="block text-xs font-medium text-foreground/60 mb-2 uppercase tracking-wide">Alerta vehicular</label>
+              <div className="flex flex-wrap gap-2">
+                {VEHICLE_ALERT_CATEGORIES.map((cat) => (
+                  <button key={cat} type="button" onClick={() => handleCategoryChange(cat)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all active:translate-y-px ${
+                      category === cat ? "text-white shadow-sm" : "bg-secondary text-foreground/60 ring-1 ring-foreground/10 hover:bg-muted"
+                    }`}
+                    style={category === cat ? { backgroundColor: REPORT_CATEGORY_COLORS[cat], boxShadow: `0 2px 8px ${REPORT_CATEGORY_COLORS[cat]}40` } : undefined}>
+                    {REPORT_CATEGORY_LABELS[cat]}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Datos del vehículo */}
+          {isVehicle && (
+            <div className="space-y-3 bg-amber-50 dark:bg-amber-900/10 ring-1 ring-amber-200 dark:ring-amber-800/30 rounded-lg p-3">
+              <p className="text-xs font-medium text-amber-700 dark:text-amber-400">Datos del vehículo (parciales por privacidad)</p>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <label className="block text-[11px] text-foreground/50 mb-1">Marca</label>
+                  <input
+                    type="text"
+                    value={vehicleBrand}
+                    onChange={(e) => setVehicleBrand(e.target.value)}
+                    placeholder="Ej: VW, Ford"
+                    maxLength={30}
+                    className="w-full h-9 px-3 bg-white dark:bg-zinc-800 border border-border rounded-lg text-sm"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-[11px] text-foreground/50 mb-1">Color</label>
+                  <input
+                    type="text"
+                    value={vehicleColor}
+                    onChange={(e) => setVehicleColor(e.target.value)}
+                    placeholder="Ej: gris, rojo"
+                    maxLength={20}
+                    className="w-full h-9 px-3 bg-white dark:bg-zinc-800 border border-border rounded-lg text-sm"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[11px] text-foreground/50 mb-1">Últimos 4 caracteres de la patente</label>
+                <input
+                  type="text"
+                  value={vehiclePlate}
+                  onChange={(e) => setVehiclePlate(e.target.value.slice(0, 4))}
+                  placeholder="Ej: 05BG"
+                  maxLength={4}
+                  className="w-24 h-9 px-3 bg-white dark:bg-zinc-800 border border-border rounded-lg text-sm uppercase tracking-wider font-mono"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Estado */}
           <div>
             <label className="block text-xs font-medium text-foreground/60 mb-2 uppercase tracking-wide">Estado</label>
             <div className="flex flex-wrap gap-2">
               {availableStatuses.map((s) => (
                 <button key={s} type="button" onClick={() => setStatus(s)}
-                  className={`px-3 py-1.5 rounded-4xl text-xs font-medium transition-all active:translate-y-px ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all active:translate-y-px ${
                     status === s ? "text-white shadow-sm" : "bg-secondary text-foreground/60 ring-1 ring-foreground/10 hover:bg-muted"
                   }`}
                   style={status === s ? { backgroundColor: REPORT_STATUS_COLORS[s], boxShadow: `0 2px 8px ${REPORT_STATUS_COLORS[s]}40` } : undefined}>
@@ -354,7 +434,9 @@ export default function ReportForm({
               Comentario <span className="normal-case text-foreground/30 font-normal">(opcional)</span>
             </label>
             <textarea value={comment} onChange={(e) => setComment(e.target.value)} maxLength={500} rows={2}
-              placeholder={reportType === "neighborhood_share"
+              placeholder={isVehicle
+                ? "Ej: Estacionado hace rato, suena desde las 3am..."
+                : reportType === "neighborhood_share"
                 ? "Ej: Dejé libros en la puerta, se pueden retirar..."
                 : "Ej: Está en la esquina, bloquea la vereda..."}
               className="w-full px-3 py-2.5 bg-transparent border border-border rounded-lg text-sm text-card-foreground placeholder:text-foreground/30 focus:ring-2 focus:ring-primary/50 focus:border-transparent resize-none transition-all" />

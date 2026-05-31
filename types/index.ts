@@ -12,7 +12,10 @@ export type ReportCategory =
   | "reusable_materials"
   | "plants"
   | "free_object"
-  | "other_share";
+  | "other_share"
+  | "lights_on"
+  | "hazard_lights"
+  | "alarm_sounding";
 
 export type ReportType = "urban_notice" | "neighborhood_share";
 
@@ -114,6 +117,7 @@ export type CategoryGroup =
   | "obstructions"
   | "waste"
   | "neighborhood_share"
+  | "vehicle_alerts"
   | "services_seek"
   | "services_offer";
 

@@ -12,12 +12,16 @@ import {
   SERVICE_CATEGORY_COLORS,
   SERVICE_CATEGORY_LABELS,
   JOB_URGENCY_LABELS,
+  isVehicleAlert,
 } from "@/lib/constants";
 import { timeAgo } from "@/lib/utils";
 import "leaflet/dist/leaflet.css";
 
 function createIcon(category: ReportCategory): L.DivIcon {
   const color = REPORT_CATEGORY_COLORS[category];
+  const inner = isVehicleAlert(category)
+    ? `<text x="12" y="15" text-anchor="middle" font-size="11" fill="${color}">🚗</text>`
+    : `<circle cx="12" cy="12" r="6" fill="white"/>`;
   return L.divIcon({
     className: "",
     iconSize: [28, 28],
@@ -25,7 +29,7 @@ function createIcon(category: ReportCategory): L.DivIcon {
     popupAnchor: [0, -28],
     html: `<svg viewBox="0 0 24 36" width="28" height="36" xmlns="http://www.w3.org/2000/svg">
       <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="${color}"/>
-      <circle cx="12" cy="12" r="6" fill="white"/>
+      ${inner}
     </svg>`,
   });
 }

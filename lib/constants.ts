@@ -1,5 +1,13 @@
 import type { ReportStatus, ReportCategory, ReportType, LocationValidation, ConfidenceLevel, CategoryGroup, ServiceCategory, JobUrgency, JobStatus } from "@/types";
 
+export function isVehicleAlert(category: ReportCategory): boolean {
+  return VEHICLE_ALERT_CATEGORIES.includes(category);
+}
+
+export const VEHICLE_ALERT_CATEGORIES: ReportCategory[] = [
+  "lights_on", "hazard_lights", "alarm_sounding",
+];
+
 export function isServicesMode(group: CategoryGroup): boolean {
   return group === "services_seek" || group === "services_offer";
 }
@@ -21,6 +29,9 @@ export const REPORT_CATEGORY_LABELS: Record<ReportCategory, string> = {
   plants: "Plantas o macetas",
   free_object: "Objeto gratuito",
   other_share: "Otro aviso vecinal",
+  lights_on: "Luces encendidas",
+  hazard_lights: "Balizas encendidas",
+  alarm_sounding: "Alarma sonando",
 };
 
 export const REPORT_CATEGORY_COLORS: Record<ReportCategory, string> = {
@@ -38,6 +49,9 @@ export const REPORT_CATEGORY_COLORS: Record<ReportCategory, string> = {
   plants: "#22C55E",
   free_object: "#14B8A6",
   other_share: "#64748B",
+  lights_on: "#F59E0B",
+  hazard_lights: "#EF4444",
+  alarm_sounding: "#DC2626",
 };
 
 export const ALL_CATEGORIES: ReportCategory[] = [
@@ -55,6 +69,9 @@ export const ALL_CATEGORIES: ReportCategory[] = [
   "plants",
   "free_object",
   "other_share",
+  "lights_on",
+  "hazard_lights",
+  "alarm_sounding",
 ];
 
 // ─── Tipos de aviso ───
@@ -68,6 +85,7 @@ export const URBAN_NOTICE_CATEGORIES: ReportCategory[] = [
   "dumpster", "construction_debris", "construction_materials",
   "roadwork_obstruction", "sidewalk_blocked", "street_obstruction",
   "large_waste", "other",
+  "lights_on", "hazard_lights", "alarm_sounding",
 ];
 
 export const NEIGHBORHOOD_SHARE_CATEGORIES: ReportCategory[] = [
@@ -89,6 +107,7 @@ export const CATEGORY_GROUP_LABELS: Record<CategoryGroup, string> = {
   obstructions: "Obstáculos",
   waste: "Residuos",
   neighborhood_share: "Compartido",
+  vehicle_alerts: "Vehículos",
   services_seek: "Busco servicio",
   services_offer: "Ofrezco servicio",
 };
@@ -100,6 +119,7 @@ export const CATEGORY_GROUP_DESCRIPTIONS: Record<CategoryGroup, string> = {
   obstructions: "Veredas bloqueadas y obstáculos en la calle.",
   waste: "Residuos voluminosos dejados en la vía pública.",
   neighborhood_share: "Cosas útiles dejadas por vecinos: libros, muebles, plantas, objetos gratuitos.",
+  vehicle_alerts: "Vehículos con luces, balizas o alarma en la vía pública.",
   services_seek: "Vecinos que buscan un profesional para un trabajo.",
   services_offer: "Profesionales que ofrecen sus servicios en la zona.",
 };
@@ -111,6 +131,7 @@ export const CATEGORY_GROUP_MEMBERS: Record<CategoryGroup, ReportCategory[] | nu
   obstructions: ["sidewalk_blocked", "street_obstruction"],
   waste: ["large_waste"],
   neighborhood_share: ["books", "furniture", "reusable_materials", "plants", "free_object", "other_share"],
+  vehicle_alerts: ["lights_on", "hazard_lights", "alarm_sounding"],
   services_seek: null,
   services_offer: null,
 };
@@ -162,6 +183,9 @@ export const CATEGORY_STATUSES: Record<ReportCategory, ReportStatus[]> = {
   plants: ["available", "seen"],
   free_object: ["available", "seen"],
   other_share: ["available", "seen"],
+  lights_on: ["seen", "removed"],
+  hazard_lights: ["seen", "removed"],
+  alarm_sounding: ["seen", "removed"],
 };
 
 export const ACTIVE_STATUSES: ReportStatus[] = [

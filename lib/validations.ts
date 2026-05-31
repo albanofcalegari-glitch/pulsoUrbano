@@ -22,6 +22,7 @@ export const createReportSchema = z.object({
     "roadwork_obstruction", "sidewalk_blocked", "street_obstruction",
     "large_waste", "other",
     "books", "furniture", "reusable_materials", "plants", "free_object", "other_share",
+    "lights_on", "hazard_lights", "alarm_sounding",
   ]).default("dumpster"),
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),

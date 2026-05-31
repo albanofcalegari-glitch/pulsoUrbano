@@ -77,11 +77,11 @@ export default function ReportDetail({ report, isLoggedIn, isBlocked, onClose, o
             <span className="text-[10px] font-medium text-foreground/40 uppercase tracking-wider">
               {REPORT_TYPE_LABELS[reportType]}
             </span>
-            <span className="inline-flex items-center h-5 px-2.5 rounded-4xl text-xs font-medium text-white"
+            <span className="inline-flex items-center h-5 px-2.5 rounded-full text-xs font-medium text-white"
               style={{ backgroundColor: REPORT_CATEGORY_COLORS[category] }}>
               {REPORT_CATEGORY_LABELS[category]}
             </span>
-            <span className="inline-flex items-center h-5 px-2.5 rounded-4xl text-xs font-medium text-white"
+            <span className="inline-flex items-center h-5 px-2.5 rounded-full text-xs font-medium text-white"
               style={{ backgroundColor: REPORT_STATUS_COLORS[status] }}>
               {REPORT_STATUS_LABELS[status]}
             </span>

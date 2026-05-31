@@ -5,7 +5,7 @@ import type { CategoryGroup } from "@/types";
 import { CATEGORY_GROUP_LABELS, CATEGORY_GROUP_DESCRIPTIONS, isServicesMode } from "@/lib/constants";
 
 const MAIN_GROUPS: CategoryGroup[] = [
-  "all", "dumpsters", "construction", "obstructions", "waste", "neighborhood_share",
+  "all", "dumpsters", "construction", "obstructions", "waste", "neighborhood_share", "vehicle_alerts",
 ];
 
 const SERVICE_SUB_GROUPS: CategoryGroup[] = ["services_seek", "services_offer"];
@@ -99,7 +99,7 @@ export default function StatusFilter({ selected, onChange }: StatusFilterProps) 
             <div className="fixed inset-0 z-40" onClick={() => setShowHelp(false)} />
             <div className="absolute right-0 top-9 z-50 w-64 sm:w-72 bg-card rounded-xl ring-1 ring-foreground/10 shadow-xl p-3 space-y-2">
               <p className="text-xs font-medium text-foreground/60 uppercase tracking-wide mb-2">Categorías</p>
-              {[...MAIN_GROUPS, ...SERVICE_SUB_GROUPS].map((group) => (
+              {[...MAIN_GROUPS, ...SERVICE_SUB_GROUPS].filter(g => g !== "all").map((group) => (
                 <div key={group} className="flex gap-2">
                   <span className="text-xs font-medium text-primary shrink-0 w-24">{CATEGORY_GROUP_LABELS[group]}</span>
                   <span className="text-xs text-foreground/50">{CATEGORY_GROUP_DESCRIPTIONS[group]}</span>
