@@ -229,6 +229,33 @@ export default function HomePage() {
           flyTrigger={flyTrigger}
         />
 
+        {/* Banner servicios */}
+        {isSeekMode && jobs.length === 0 && !pickingLocation && (
+          <div className="absolute top-3 left-3 right-3 z-10 bg-card/95 backdrop-blur ring-1 ring-foreground/10 shadow-xl rounded-xl p-4 space-y-2">
+            <p className="text-sm font-semibold">Busco servicio</p>
+            <p className="text-xs text-foreground/60">Publicá un pedido y los proveedores del barrio se postulan. Todavía no hay pedidos publicados.</p>
+            <button
+              onClick={handleReportButton}
+              className="mt-1 px-4 py-2 rounded-lg bg-purple-600 text-white text-xs font-medium hover:bg-purple-700 transition-colors"
+            >
+              Publicar pedido
+            </button>
+          </div>
+        )}
+
+        {isOfferMode && providers.length === 0 && !pickingLocation && (
+          <div className="absolute top-3 left-3 right-3 z-10 bg-card/95 backdrop-blur ring-1 ring-foreground/10 shadow-xl rounded-xl p-4 space-y-2">
+            <p className="text-sm font-semibold">Ofrezco servicio</p>
+            <p className="text-xs text-foreground/60">Creá tu perfil de proveedor para que los vecinos te encuentren cuando necesiten un servicio.</p>
+            <button
+              onClick={handleReportButton}
+              className="mt-1 px-4 py-2 rounded-lg bg-purple-600 text-white text-xs font-medium hover:bg-purple-700 transition-colors"
+            >
+              Crear mi perfil
+            </button>
+          </div>
+        )}
+
         {/* Aviso picking */}
         {pickingLocation && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-primary text-white text-sm font-medium px-5 py-2.5 rounded-full shadow-lg shadow-primary/25 animate-pulse">
