@@ -109,6 +109,10 @@ export default function ReportForm({
     if (!newStatuses.includes(status)) {
       setStatus(newStatuses[0]);
     }
+    if (isVehicleAlert(newCat)) {
+      setPhotoFile(null);
+      setPhotoPreview(null);
+    }
   }
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -231,8 +235,8 @@ export default function ReportForm({
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          {/* Foto (opcional) */}
-          <div>
+          {/* Foto (opcional) — oculta en alertas vehiculares */}
+          {!isVehicle && <div>
             <label className="block text-xs font-medium text-foreground/60 mb-2 uppercase tracking-wide">
               Foto <span className="normal-case text-foreground/30 font-normal">(opcional)</span>
             </label>
@@ -255,7 +259,7 @@ export default function ReportForm({
             )}
             <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" capture="environment"
               onChange={handlePhotoChange} className="hidden" />
-          </div>
+          </div>}
 
           {/* Ubicación */}
           <div>
