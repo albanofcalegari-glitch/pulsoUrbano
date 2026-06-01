@@ -104,14 +104,17 @@ export default function ReportForm({
   }
 
   function handleCategoryChange(newCat: ReportCategory) {
+    if (isVehicleAlert(newCat) && photoFile) {
+      if (!window.confirm("Las alertas vehiculares no permiten foto por seguridad (protección de patente). Si continuás, se eliminará la foto cargada.")) {
+        return;
+      }
+      setPhotoFile(null);
+      setPhotoPreview(null);
+    }
     setCategory(newCat);
     const newStatuses = CATEGORY_STATUSES[newCat];
     if (!newStatuses.includes(status)) {
       setStatus(newStatuses[0]);
-    }
-    if (isVehicleAlert(newCat)) {
-      setPhotoFile(null);
-      setPhotoPreview(null);
     }
   }
 
