@@ -21,7 +21,7 @@ interface MapWrapperProps {
   onReportClick?: (report: Report) => void;
   onJobClick?: (job: JobRequest) => void;
   onMapClick?: (lat: number, lng: number) => void;
-  onBoundsChange?: (bounds: { south: number; west: number; north: number; east: number }) => void;
+  onBoundsChange?: (bounds: { south: number; west: number; north: number; east: number; zoom: number }) => void;
   selectedPosition?: { lat: number; lng: number } | null;
   userLocation?: { lat: number; lng: number } | null;
   flyTrigger?: number;

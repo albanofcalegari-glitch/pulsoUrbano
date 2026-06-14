@@ -60,25 +60,25 @@ const SUBTE_LINE_COLORS: Record<string, { bg: string; text: string }> = {
 
 const busStopIcon = L.divIcon({
   className: "",
-  iconSize: [22, 22],
-  iconAnchor: [11, 11],
-  html: `<svg viewBox="0 0 22 22" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="11" cy="11" r="10" fill="#0284C7" stroke="white" stroke-width="1.5"/>
-    <text x="11" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white" font-family="sans-serif">B</text>
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
+  html: `<svg viewBox="0 0 14 14" width="14" height="14" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="7" cy="7" r="6" fill="#0284C7" stroke="white" stroke-width="1"/>
+    <text x="7" y="10.5" text-anchor="middle" font-size="8" font-weight="bold" fill="white" font-family="sans-serif">B</text>
   </svg>`,
 });
 
 const subwayIcon = L.divIcon({
   className: "",
-  iconSize: [24, 24],
-  iconAnchor: [12, 12],
-  html: `<svg viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
-    <rect x="2" y="2" width="20" height="20" rx="5" fill="#DC2626" stroke="white" stroke-width="1.5"/>
-    <text x="12" y="17" text-anchor="middle" font-size="13" font-weight="bold" fill="white" font-family="sans-serif">S</text>
+  iconSize: [18, 18],
+  iconAnchor: [9, 9],
+  html: `<svg viewBox="0 0 18 18" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
+    <rect x="1" y="1" width="16" height="16" rx="4" fill="#DC2626" stroke="white" stroke-width="1"/>
+    <text x="9" y="13" text-anchor="middle" font-size="10" font-weight="bold" fill="white" font-family="sans-serif">S</text>
   </svg>`,
 });
 
-function MapBoundsTracker({ onBoundsChange }: { onBoundsChange: (bounds: { south: number; west: number; north: number; east: number }) => void }) {
+function MapBoundsTracker({ onBoundsChange }: { onBoundsChange: (bounds: { south: number; west: number; north: number; east: number; zoom: number }) => void }) {
   const map = useMap();
   useEffect(() => {
     function report() {
@@ -88,6 +88,7 @@ function MapBoundsTracker({ onBoundsChange }: { onBoundsChange: (bounds: { south
         west: b.getWest(),
         north: b.getNorth(),
         east: b.getEast(),
+        zoom: map.getZoom(),
       });
     }
     report();
@@ -128,7 +129,7 @@ interface MapProps {
   onReportClick?: (report: Report) => void;
   onJobClick?: (job: JobRequest) => void;
   onMapClick?: (lat: number, lng: number) => void;
-  onBoundsChange?: (bounds: { south: number; west: number; north: number; east: number }) => void;
+  onBoundsChange?: (bounds: { south: number; west: number; north: number; east: number; zoom: number }) => void;
   selectedPosition?: { lat: number; lng: number } | null;
   userLocation?: { lat: number; lng: number } | null;
   flyTrigger?: number;

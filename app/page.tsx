@@ -38,8 +38,11 @@ export default function HomePage() {
   const [hasProviderProfile, setHasProviderProfile] = useState(false);
   const [showTransit, setShowTransit] = useState(false);
   const [transitStops, setTransitStops] = useState<TransitStop[]>([]);
+  const [transitZoomOk, setTransitZoomOk] = useState(false);
   const mapBoundsRef = useRef<{ south: number; west: number; north: number; east: number } | null>(null);
+  const mapZoomRef = useRef(DEFAULT_ZOOM);
   const transitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const TRANSIT_MIN_ZOOM = 15;
 
   const [flyTrigger, setFlyTrigger] = useState(0);
   const center = geo.located ? { lat: geo.lat, lng: geo.lng } : DEFAULT_CENTER;
@@ -81,16 +84,23 @@ export default function HomePage() {
 
   const fetchTransitStops = useCallback(async () => {
     const b = mapBoundsRef.current;
-    if (!b) return;
+    if (!b || mapZoomRef.current < TRANSIT_MIN_ZOOM) {
+      setTransitStops([]);
+      return;
+    }
     try {
       const stops = await fetchTransitFromOverpass(b);
       setTransitStops(stops);
     } catch { /* ignore */ }
   }, []);
 
-  const handleBoundsChange = useCallback((bounds: { south: number; west: number; north: number; east: number }) => {
+  const handleBoundsChange = useCallback((bounds: { south: number; west: number; north: number; east: number; zoom: number }) => {
     mapBoundsRef.current = bounds;
+    mapZoomRef.current = bounds.zoom;
+    const zoomOk = bounds.zoom >= TRANSIT_MIN_ZOOM;
+    setTransitZoomOk(zoomOk);
     if (!showTransit) return;
+    if (!zoomOk) { setTransitStops([]); return; }
     if (transitTimerRef.current) clearTimeout(transitTimerRef.current);
     transitTimerRef.current = setTimeout(fetchTransitStops, 500);
   }, [showTransit, fetchTransitStops]);
@@ -288,6 +298,13 @@ export default function HomePage() {
         {pickingLocation && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-primary text-white text-sm font-medium px-5 py-2.5 rounded-full shadow-lg shadow-primary/25 animate-pulse">
             Tocá en el mapa para marcar la ubicación
+          </div>
+        )}
+
+        {/* Aviso zoom transporte */}
+        {showTransit && !transitZoomOk && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-sky-600 text-white text-xs font-medium px-4 py-2 rounded-full shadow-lg">
+            Acercate para ver paradas y estaciones
           </div>
         )}
 
