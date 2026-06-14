@@ -212,6 +212,19 @@ export interface JobReview {
   author: PublicUser;
 }
 
+// ─── Capa 4: Transporte público ───
+
+export type TransitType = "bus_stop" | "subway_station";
+
+export interface TransitStop {
+  id: number;
+  type: TransitType;
+  lat: number;
+  lng: number;
+  name: string | null;
+  line: string | null;
+}
+
 export interface CreateJobPayload {
   title: string;
   description: string;

@@ -13,9 +13,11 @@ const SERVICE_SUB_GROUPS: CategoryGroup[] = ["services_seek", "services_offer"];
 interface StatusFilterProps {
   selected: CategoryGroup;
   onChange: (group: CategoryGroup) => void;
+  showTransit?: boolean;
+  onToggleTransit?: () => void;
 }
 
-export default function StatusFilter({ selected, onChange }: StatusFilterProps) {
+export default function StatusFilter({ selected, onChange, showTransit, onToggleTransit }: StatusFilterProps) {
   const [showHelp, setShowHelp] = useState(false);
   const [showServiceMenu, setShowServiceMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -85,6 +87,27 @@ export default function StatusFilter({ selected, onChange }: StatusFilterProps) 
           </div>
         )}
       </div>
+
+      {onToggleTransit && (
+        <button
+          onClick={onToggleTransit}
+          className={`shrink-0 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-all active:translate-y-px flex items-center gap-1 ${
+            showTransit
+              ? "bg-sky-600 text-white shadow-sm shadow-sky-600/25"
+              : "bg-secondary text-foreground/70 ring-1 ring-foreground/10 hover:bg-muted"
+          }`}
+          title="Mostrar paradas de colectivo y subte"
+        >
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="14" rx="2" />
+            <path d="M3 9h18" />
+            <circle cx="7.5" cy="20" r="1.5" />
+            <circle cx="16.5" cy="20" r="1.5" />
+            <path d="M6 17v3M18 17v3" />
+          </svg>
+          <span className="hidden sm:inline">Transporte</span>
+        </button>
+      )}
 
       <div className="relative shrink-0">
         <button

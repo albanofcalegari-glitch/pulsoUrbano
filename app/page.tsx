@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import MapWrapper from "@/components/MapWrapper";
 import StatusFilter from "@/components/StatusFilter";
 import ReportForm from "@/components/ReportForm";
@@ -13,8 +13,9 @@ import AuthModal from "@/components/AuthModal";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useAuth } from "@/hooks/useAuth";
 import { DEFAULT_CENTER, DEFAULT_ZOOM, APP_NAME, isServicesMode } from "@/lib/constants";
+import { fetchTransitStops as fetchTransitFromOverpass } from "@/lib/transit";
 import { starsDisplay } from "@/lib/utils";
-import type { Report, JobRequest, ServiceProvider, CategoryGroup } from "@/types";
+import type { Report, JobRequest, ServiceProvider, CategoryGroup, TransitStop } from "@/types";
 
 export default function HomePage() {
   const geo = useGeolocation();
@@ -35,6 +36,10 @@ export default function HomePage() {
   const [selectedPosition, setSelectedPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [pickingLocation, setPickingLocation] = useState(false);
   const [hasProviderProfile, setHasProviderProfile] = useState(false);
+  const [showTransit, setShowTransit] = useState(false);
+  const [transitStops, setTransitStops] = useState<TransitStop[]>([]);
+  const mapBoundsRef = useRef<{ south: number; west: number; north: number; east: number } | null>(null);
+  const transitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [flyTrigger, setFlyTrigger] = useState(0);
   const center = geo.located ? { lat: geo.lat, lng: geo.lng } : DEFAULT_CENTER;
@@ -73,6 +78,27 @@ export default function HomePage() {
       setHasProviderProfile(false);
     }
   }, [auth.user]);
+
+  const fetchTransitStops = useCallback(async () => {
+    const b = mapBoundsRef.current;
+    if (!b) return;
+    try {
+      const stops = await fetchTransitFromOverpass(b);
+      setTransitStops(stops);
+    } catch { /* ignore */ }
+  }, []);
+
+  const handleBoundsChange = useCallback((bounds: { south: number; west: number; north: number; east: number }) => {
+    mapBoundsRef.current = bounds;
+    if (!showTransit) return;
+    if (transitTimerRef.current) clearTimeout(transitTimerRef.current);
+    transitTimerRef.current = setTimeout(fetchTransitStops, 500);
+  }, [showTransit, fetchTransitStops]);
+
+  useEffect(() => {
+    if (showTransit) fetchTransitStops();
+    else setTransitStops([]);
+  }, [showTransit, fetchTransitStops]);
 
   useEffect(() => { fetchReports(); }, [fetchReports]);
   useEffect(() => { fetchJobs(); }, [fetchJobs]);
@@ -180,7 +206,7 @@ export default function HomePage() {
 
       {/* Filtros */}
       <div className="shrink-0 bg-card border-b border-border px-2 py-1.5 sm:px-3 sm:py-2">
-        <StatusFilter selected={categoryGroup} onChange={setCategoryGroup} />
+        <StatusFilter selected={categoryGroup} onChange={setCategoryGroup} showTransit={showTransit} onToggleTransit={() => setShowTransit(v => !v)} />
       </div>
 
       {/* Disclaimer */}
@@ -221,9 +247,11 @@ export default function HomePage() {
         <MapWrapper
           center={center} zoom={DEFAULT_ZOOM} reports={reports}
           jobs={jobs}
+          transitStops={showTransit ? transitStops : undefined}
           onReportClick={setSelectedReport}
           onJobClick={setSelectedJob}
           onMapClick={pickingLocation ? handleMapClick : undefined}
+          onBoundsChange={handleBoundsChange}
           selectedPosition={selectedPosition}
           userLocation={userLocation}
           flyTrigger={flyTrigger}
